@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'src/globals.dart';
 import 'src/game_core.dart';
+import 'src/main_menu_overlay.dart';
 
 //zen mode - score only
 //map mode - candy-crush
@@ -25,7 +26,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  Key _key = UniqueKey();
+  final Key _key = UniqueKey();
 
   // This widget is the root of your application.
   @override
@@ -49,15 +50,16 @@ class MyHomePage extends StatefulWidget {
 enum ControlSide { left, right }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _message = "";
   ControlSide _controls = ControlSide.right;
   double _size = 150;
-  final FocusNode _focusNode = FocusNode();
-  int _score = 0;
+  bool joypadVisible = true;
+  late GameWidget _gameWidget;
+  late Column _joypad;
+  List<Widget> widgets = [];
   late GameCore _game;
 
-  void setMessage(String msg) {
-    _message = msg;
+  _MyHomePageState() : super() {
+    init();
   }
 
   void setControls(ControlSide side) {
@@ -77,36 +79,39 @@ class _MyHomePageState extends State<MyHomePage> {
     _game.joypadChanged(degrees, distance);
   }
 
-  void initGame() {
-    _game = GameCore(scoreCallback: incrementScore);
+  void init() {
+    _game = GameCore();
+    _gameWidget = GameWidget(game: _game);
+    _joypad = _createJoyPad();
+    widgets = [
+      _gameWidget,
+      _joypad,
+      //MainMenuOverllay(key: const Key("overlay"), game: _game)
+    ];
   }
 
-  void incrementScore(int score) {
-    _score = score;
-  }
-
-  // Focus nodes need to be disposed.
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
+  void toggleJoyPad() {
+    setState(() {
+      if (joypadVisible) {
+        widgets = [
+          _gameWidget,
+          _joypad,
+          ElevatedButton(child: const Text("try"), onPressed: toggleJoyPad),
+        ];
+      } else {
+        widgets = [
+          _gameWidget,
+          ElevatedButton(child: const Text("try"), onPressed: toggleJoyPad),
+        ];
+      }
+      joypadVisible = !joypadVisible;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    initGame();
     return Scaffold(
-      body: RawKeyboardListener(
-        focusNode: _focusNode,
-        child: Stack(
-          children: <Widget>[
-            GameWidget(game: _game),
-            _createJoyPad(),
-            //_createInfoText(),
-          ],
-        ),
-      ),
-      //floatingActionButton: _createDPad());
+      body: Stack(children: widgets),
     );
   }
 

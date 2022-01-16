@@ -21,7 +21,7 @@ class Trajectory {
 
   void addPointDeltaT(double dt, Vector2 p) {
     assert(_times.length == _points.length);
-    _points.add(p);
+    _points.add(p.clone());
     if (_times.isNotEmpty) {
       _times.add(_times.last + dt);
     } else {
@@ -41,6 +41,25 @@ class Trajectory {
       _points.removeRange(startIndex, endIndex - 1);
     }
     assert(_times.length == _points.length);
+  }
+
+  void dispatchPointsFrom(double t) {
+    assert(_times.length == _points.length);
+    int startIndex = _times.lastIndexWhere((element) => element < t);
+    _times.removeRange(startIndex, _times.length);
+    _points.removeRange(startIndex, _points.length);
+    assert(_times.length == _points.length);
+  }
+
+  bool isTimeValid(double t) {
+    if (_points.length <= 1) {
+      return false;
+    }
+    assert(_times.length == _points.length);
+    if (t < _times.first || t > _times.last) {
+      return false;
+    }
+    return true;
   }
 
   Vector2 getPoint(double t) {

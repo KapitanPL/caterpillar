@@ -1,59 +1,85 @@
+import 'dart:math';
 import 'dart:ui';
 
-import 'package:flame/components.dart';
+import 'package:catterpillardream/src/game_view.dart';
+import 'package:catterpillardream/src/main_menu_view.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
+import 'base_view.dart';
 import 'caterpillar.dart';
-
-typedef ScoreCallback = void Function(int score);
+import 'food.dart';
 
 class GameCore extends FlameGame with HasCollidables {
-  GameCore({required this.scoreCallback}) {
-    Caterpillar cat = createNewCaterpillar();
-    final Set<int> colors = {1, 2, 3, 4};
-    cat.initBodyRandomCount(4, colors);
-    caterpillars[cat.id()] = cat;
-    _playerId = cat.id();
+  late Vector2 screenSize;
+  final Map<BaseViewType, BaseView> _views = {};
+  late BaseViewType _activeView;
+  final Random _random = Random();
+  GameCore();
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _views[BaseViewType.Game] = GameView(this);
+    _views[BaseViewType.MainMenu] = MainMenuView(this);
+    var activeteView = BaseViewType.MainMenu;
+    _activeView = activeteView;
+    _views[activeteView]?.activate();
   }
-  double _direction = 0;
-  final ScoreCallback scoreCallback;
-  int _lastAssociatedId = -1;
-  int _playerId = -1;
-  double _fps = 0;
-  Map<int, Caterpillar> caterpillars = {};
 
   void joypadChanged(double degrees, double distance) {
-    _direction = degrees;
-    caterpillars[_playerId]!.directionChanged(_direction, distance);
+    _views[_activeView]?.joypadChanged(degrees, distance);
   }
 
-  Caterpillar createNewCaterpillar() {
-    _lastAssociatedId++;
-    return Caterpillar(_lastAssociatedId);
+  Caterpillar createNewCaterpillar(
+      PrimitiveTypeWrapper<int> lastAssociatedId, Vector2 initPosition) {
+    lastAssociatedId.val++;
+    return Caterpillar(lastAssociatedId.val, this, initPosition);
+  }
+
+  bool testFoodPositionCollides(FoodBase newFood) {
+    bool collides = true;
+    for (var i = 0; i < collidables.length; ++i) {
+      collides = collidables[i].possiblyOverlapping(newFood);
+      if (collides) {
+        break;
+      }
+    }
+    return collides;
+  }
+
+  void addFood(Set<int> colors) {
+    FoodBase newFood = FoodBase(
+        position: Vector2(_random.nextDouble() * screenSize.x,
+            _random.nextDouble() * screenSize.y),
+        type: colors.elementAt(_random.nextInt(colors.length)),
+        eaten: () => addFood(colors));
+
+    while (testFoodPositionCollides(newFood)) {
+      newFood = FoodBase(
+          position: Vector2(_random.nextDouble() * screenSize.x,
+              _random.nextDouble() * screenSize.y),
+          type: colors.elementAt(_random.nextInt(colors.length - 1)),
+          eaten: () => addFood(colors));
+    }
+    add(newFood);
   }
 
   @override
   void update(double dt) {
+    _views[_activeView]?.update(dt);
     super.update(dt);
-    _fps = 1 / dt;
-    caterpillars.forEach((key, value) {
-      value.update(dt);
-    });
   }
 
   @override
   void render(Canvas canvas) {
+    _views[_activeView]?.render(canvas);
     super.render(canvas);
-    TextPainter tp = TextPainter(
-        text: TextSpan(
-            style: const TextStyle(color: Colors.amber),
-            text: "FPS ${_fps.toStringAsFixed(2)}"),
-        textDirection: TextDirection.ltr);
-    tp.layout();
-    tp.paint(canvas, const Offset(0, 0));
-    caterpillars.forEach((key, value) {
-      value.paint(canvas);
-    });
+  }
+
+  @override
+  void onGameResize(Vector2 canvasSize) {
+    screenSize = canvasSize;
+    super.onGameResize(screenSize);
   }
 }

@@ -20,19 +20,27 @@ class SizeProvider {
 }
 
 class SpeedProvider {
-  static int _gapSpeedFactor = 15;
-  static int _foodSpeedFactor = 15;
-  static int _headSpeedFactor = 50;
+  static int _gapSpeedFactor = 3;
+  static int _foodSpeedFactor = 3;
+  static int _headSpeedFactor = 100;
 
   static int headSpeed() {
     return _headSpeedFactor;
   }
 
   static int foodSpeed() {
-    return _foodSpeedFactor;
+    return _foodSpeedFactor * _headSpeedFactor;
   }
 
-  static int gapSpeed() {
+  static int gapSpeedFactor() {
     return _gapSpeedFactor;
   }
+}
+
+class Rules {
+  static bool APPEND_IN_GAP = false;
+}
+
+class MiscelaneousGlobals {
+  static int FOOD_GRADIENT_COUNT = 10;
 }
