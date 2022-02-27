@@ -93,7 +93,7 @@ class Caterpillar {
       iteration++;
     } // while
 
-    if (isValid = false) {
+    if (isValid == false) {
       for (var i = 0; i < initLength; ++i) {
         body.add(CaterpillarBody(
             position: headPosition,
@@ -102,9 +102,11 @@ class Caterpillar {
       }
     }
 
-    (body[0] as CaterpillarBody).canColideWithHead = false;
-    caterpillar.addAll(body);
-    _game.addAll(body);
+    if (body.isNotEmpty) {
+      (body[0] as CaterpillarBody).canColideWithHead = false;
+      caterpillar.addAll(body);
+      _game.addAll(body);
+    }
   }
 
   void initBodyPaternCount(int count, List<int> pattern) {}
@@ -197,7 +199,7 @@ class Caterpillar {
     if (nextIndex < caterpillar.length) {
       var nextPiece = (caterpillar[nextIndex] as CaterpillarBody);
 
-      if (nextPiece.hasGap && Rules.APPEND_IN_GAP) {
+      if (nextPiece.hasGap && RulesProvider.rules!.appendInGap) {
         CaterpillarBody newPiece = CaterpillarBody(
             position: thisPiece.position, type: food, id: _caterpiallarId);
         newPiece.time = thisPiece.time;

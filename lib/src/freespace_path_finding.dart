@@ -1,19 +1,18 @@
 import 'dart:math';
 
-import 'package:catterpillardream/src/caterpillar_base.dart';
+import 'package:catterpillardream/src/walls.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
 
 import 'globals.dart';
 import 'game_core.dart';
-import 'food.dart';
 
 class IntersectionInfo {
-  int firstIndex;
-  int secondIndex;
+  int leftIndex;
+  int rightIndex;
   Vector2 intersectionPoint;
-  IntersectionInfo(this.firstIndex, this.secondIndex, this.intersectionPoint);
+  IntersectionInfo(this.leftIndex, this.rightIndex, this.intersectionPoint);
 }
 
 class CollidableInfo {
@@ -31,17 +30,18 @@ class PathComponentSegment extends RectangleComponent {
       required this.start,
       required this.end})
       : super(size: size, angle: angle, position: position) {
-    print(size);
     paint.color = Colors.red.withOpacity(0.5);
     paint.style = PaintingStyle.stroke;
     paint.strokeWidth = 4;
-    debugMode = true;
   }
 
   @override
   void render(Canvas canvas) {
-    canvas.drawLine(Offset(size.x / 2, 0), Offset(size.x / 2, size.y), paint);
-    super.render(canvas);
+    if (shouldRemove) {
+      return;
+    }
+    // canvas.drawLine(Offset(size.x / 2, 0), Offset(size.x / 2, size.y), paint);
+    //super.render(canvas);
   }
 
   double getDirectionAngle() {
@@ -90,6 +90,7 @@ class CaterpillarPath {
     points.insert(index, point);
     if (index > 0) {
       // except for first
+      _pathList[index - 1].shouldRemove = true;
       _pathList.removeAt(index - 1);
       var previousPathElement =
           getPathCollidable(points[index - 1], points[index], _objectSize);
@@ -102,13 +103,21 @@ class CaterpillarPath {
     _pathList.insert(index, newPathElement);
   }
 
-  CollidableInfo _getFirstCollidable() {
+  CollidableInfo _getFirstCollidableForPoints(
+      List<Collidable> collidablesToIgnore,
+      List<Vector2> pathPoints,
+      double objectSize) {
     CollidableInfo ret = CollidableInfo();
     List<Collidable> colisions = [];
     int segmentCounter = 0;
-    for (var pathSegment in _pathList) {
+    for (var i = 0; i < pathPoints.length - 1; ++i) {
+      var pathSegment =
+          getPathCollidable(pathPoints[i], pathPoints[i + 1], objectSize);
       for (var gameObject in _game.collidables) {
         if (gameObject is PathComponentSegment) {
+          continue;
+        }
+        if (collidablesToIgnore.contains(gameObject)) {
           continue;
         }
         if (pathSegment.possiblyOverlapping(gameObject) &&
@@ -117,7 +126,41 @@ class CaterpillarPath {
         }
       }
       if (colisions.isNotEmpty) {
-        //ret.segmentIndex = segmentCounter;
+        ret.segmentIndex = segmentCounter;
+        break;
+      }
+      ++segmentCounter;
+    }
+    double minDistance = double.maxFinite;
+    for (var col in colisions) {
+      double dist = col.center.distanceTo(pathPoints.first);
+      if (dist < minDistance) {
+        minDistance = dist;
+        ret.collidable = col;
+      }
+    }
+    return ret;
+  }
+
+  CollidableInfo _getFirstCollidable(List<Collidable> collidablesToIgnore) {
+    CollidableInfo ret = CollidableInfo();
+    List<Collidable> colisions = [];
+    int segmentCounter = 0;
+    for (var pathSegment in _pathList) {
+      for (var gameObject in _game.collidables) {
+        if (gameObject is PathComponentSegment) {
+          continue;
+        }
+        if (collidablesToIgnore.contains(gameObject)) {
+          continue;
+        }
+        if (pathSegment.possiblyOverlapping(gameObject) &&
+            colision(pathSegment, gameObject)) {
+          colisions.add(gameObject);
+        }
+      }
+      if (colisions.isNotEmpty) {
+        ret.segmentIndex = segmentCounter;
         break;
       }
       ++segmentCounter;
@@ -127,28 +170,29 @@ class CaterpillarPath {
       double dist = col.center.distanceTo(points.first);
       if (dist < minDistance) {
         minDistance = dist;
-        //ret.collidable = col;
+        ret.collidable = col;
       }
     }
     return ret;
   }
 
   void resolvePath(List<Collidable> collidablesToIgnore) {
-    CollidableInfo obstacleInfo = _getFirstCollidable();
-    while (obstacleInfo.collidable != null &&
-        collidablesToIgnore.contains(obstacleInfo.collidable) == false) {
+    CollidableInfo obstacleInfo = _getFirstCollidable(collidablesToIgnore);
+    if (obstacleInfo.collidable != null) {
       var pointsAround = _getPointsAroundComponent(
           obstacleInfo.collidable!,
           _pathList[obstacleInfo.segmentIndex!].start,
           _pathList[obstacleInfo.segmentIndex!].end,
           _objectSize);
-      for (int i = 0; i < pointsAround.length; ++i) {
-        insertPoint(obstacleInfo.segmentIndex! + i, pointsAround[i]);
+      double minDistance = double.infinity;
+      // while (pointsAround.isNotEmpty) {}
+      for (int i = 0; i < pointsAround[0].length; ++i) {
+        insertPoint(obstacleInfo.segmentIndex! + i + 1, pointsAround[0][i]);
       }
-      obstacleInfo = _getFirstCollidable();
     }
   }
 
+// TODO work with rect with width of objectsize rather then line
   IntersectionInfo? _closestIntersectionToStart(
       List<Vector2> points, Vector2 linePointStart, Vector2 linePointEnd) {
     LineSegment line = LineSegment(linePointStart, linePointEnd);
@@ -191,26 +235,71 @@ class CaterpillarPath {
     return ret;
   }
 
-  List<Vector2> _getPointsAroundComponent(
-      HasHitboxes obstacle, Vector2 start, Vector2 end, double size) {
-    var obstacleRect = obstacle.toRect();
-    assert(obstacleRect.contains(start.toOffset()) == false &&
-        obstacleRect.contains(end.toOffset()) == false);
+  Vector2 _getPathPoint(Vector2 center, Vector2 edgePoint, double size) {
+    return edgePoint + (edgePoint - center).normalized().scaled(size);
+  }
 
-    List<Vector2> points = [];
+  void _walkAroundComponent(List<Vector2> obstacleHull, Vector2 hullCenter,
+      List<Vector2> points, Vector2 end, double size, bool left) {
+    while (true) {
+      IntersectionInfo? intersection =
+          _closestIntersectionToStart(obstacleHull, points.last, end);
+      if (intersection != null) {
+        points.add(_getPathPoint(
+            hullCenter,
+            obstacleHull[
+                left ? intersection.leftIndex : intersection.rightIndex],
+            size));
+      } else {
+        break;
+      }
+    }
+  }
+
+  List<List<Vector2>> _getPointsAroundComponent(
+      HasHitboxes obstacle, Vector2 start, Vector2 end, double size) {
+    /*var obstacleRect = obstacle.toRect();
+    assert(obstacleRect.contains(start.toOffset()) == false &&
+        obstacleRect.contains(end.toOffset()) == false);*/
+
+    List<List<Vector2>> points = [[], []];
 
     List<Vector2> obstacleHull = _getConvexHull(obstacle);
     IntersectionInfo? intersection =
         _closestIntersectionToStart(obstacleHull, start, end);
     Vector2 center = _getConvexHullCenter(obstacleHull);
-    while (intersection != null) {
-      Vector2 newPoint = intersection.intersectionPoint +
-          (intersection.intersectionPoint - center).normalized().scaled(size);
-      points.add(newPoint);
-      intersection = _closestIntersectionToStart(obstacleHull, newPoint, end);
+
+    if (intersection != null) {
+      points[0].add(
+          _getPathPoint(center, obstacleHull[intersection.leftIndex], size));
+      points[1].add(
+          _getPathPoint(center, obstacleHull[intersection.rightIndex], size));
+      _walkAroundComponent(obstacleHull, center, points[0], end, size, true);
+      _walkAroundComponent(obstacleHull, center, points[1], end, size, false);
+    }
+
+    if (obstacle is WallBase) {
+      obstacle.setPointsAround(points);
+      obstacle.setCenterPoint(center);
     }
 
     return points;
+  }
+
+  double computePathLength(Vector2 start, Vector2 end, List<Vector2> points) {
+    double ret = 0;
+    if (points.isEmpty) {
+      ret = (start - end).length;
+    } else {
+      ret += (start - points.first).length;
+      ret += (end - points.last).length;
+      if (points.length > 1) {
+        for (var i = 0; i < points.length - 1; ++i) {
+          ret += (points[i] - points[i + 1]).length;
+        }
+      }
+    }
+    return ret;
   }
 
   static bool colision(HasHitboxes first, HasHitboxes second) {
@@ -244,11 +333,12 @@ class CaterpillarPath {
     Vector2 shift = Vector2(0, 0);
     difference.scaleOrthogonalInto(
         (-1) * SizeProvider.getSize() / difference.length, shift);
-    Vector2 tmp = Vector2(0, 0);
+    /*Vector2 tmp = Vector2(0, 0);
     shift.scaleOrthogonalInto(-1, tmp);
-    shift += tmp;
+    shift += tmp;*/
 
-    double ySize = max(.0, (end - start).length - 2.5 * SizeProvider.getSize());
+    double ySize =
+        max(.0, (end - start).length /*- 2.5 * SizeProvider.getSize()*/);
     return PathComponentSegment(
         size: Vector2(objectSize, ySize),
         angle: getStartEndAngle(start, end),

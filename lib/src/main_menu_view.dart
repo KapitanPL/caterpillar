@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:catterpillardream/src/caterpillar_base.dart';
 import 'package:catterpillardream/src/globals.dart';
@@ -11,6 +10,7 @@ import 'game_view.dart';
 import 'caterpillar.dart';
 import 'game_core.dart';
 import 'food.dart';
+import 'rules.dart';
 
 import 'freespace_path_finding.dart';
 
@@ -25,32 +25,47 @@ class MainMenuView extends GameView {
   @override
   void activate() {
     Caterpillar cat =
-        game.createNewCaterpillar(lastAssociatedId, Vector2(0, 0));
+        game.createNewCaterpillar(lastAssociatedId, Vector2(100, 100));
     cat.initBodyRandomCount(10, _colors);
     cat.path = CaterpillarPath(cat.caterpillar[0].size.x, _game);
     caterpillars[cat.id()] = cat;
 
-    /*Caterpillar cat2 =
-        game.createNewCaterpillar(lastAssociatedId, _game.screenSize);
+    /*Caterpillar cat2 = game.createNewCaterpillar(
+        lastAssociatedId, _game.screenSize - Vector2(100, 100));
     cat2.initBodyRandomCount(10, _colors);
     cat2.path = CaterpillarPath(cat2.caterpillar[0].size.x, _game);
     caterpillars[cat2.id()] = cat2;
 
     Caterpillar cat3 = game.createNewCaterpillar(
-        lastAssociatedId, Vector2(0, _game.screenSize.y));
+        lastAssociatedId, Vector2(100, _game.screenSize.y - 100));
     cat3.initBodyRandomCount(10, _colors);
     cat3.path = CaterpillarPath(cat3.caterpillar[0].size.x, _game);
     caterpillars[cat3.id()] = cat3;
 
     Caterpillar cat4 = game.createNewCaterpillar(
-        lastAssociatedId, Vector2(_game.screenSize.x, 0));
+        lastAssociatedId, Vector2(_game.screenSize.x - 100, 100));
     cat4.initBodyRandomCount(10, _colors);
     cat4.path = CaterpillarPath(cat4.caterpillar[0].size.x, _game);
     caterpillars[cat4.id()] = cat4;*/
 
     for (var i = 0; i < 10; ++i) {
-      game.addFood(_colors);
+      game.addFood(colors: _colors, position: Vector2(1000, 500));
     }
+
+    double wallThickness = 10;
+    List<Vector2> points = [
+      Vector2(wallThickness, wallThickness),
+      Vector2(game.screenSize.x - wallThickness, wallThickness),
+      Vector2(
+          game.screenSize.x - wallThickness, game.screenSize.y - wallThickness),
+      Vector2(wallThickness, game.screenSize.y - wallThickness),
+    ];
+
+    game.addWall(points: points, close: true);
+
+    Rules rules = Rules();
+    rules.canColideWithSelf = true;
+    RulesProvider.rules = rules;
   }
 
   FoodBase? findClosestFood(CaterpillarHead head) {
@@ -83,7 +98,7 @@ class MainMenuView extends GameView {
           cat.path!.clear();
           cat.path!.addPoint(headCenter);
           cat.path!.addPoint(closestFood.position);
-          cat.path!.resolvePath([closestFood, cat.caterpillar[0]]);
+          //cat.path!.resolvePath([closestFood, cat.caterpillar[0]]);
         }
 
         cat.directionChanged(cat.path!.getDirection() * toAngleConst, 1);

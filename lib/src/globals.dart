@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'rules.dart';
 
 class SizeProvider {
   static double _staticSize = 5;
@@ -37,8 +38,8 @@ class SpeedProvider {
   }
 }
 
-class Rules {
-  static bool APPEND_IN_GAP = false;
+class RulesProvider {
+  static Rules? rules;
 }
 
 class MiscelaneousGlobals {

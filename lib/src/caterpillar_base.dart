@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:catterpillardream/src/food.dart';
+import 'package:catterpillardream/src/walls.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ class CaterpillarHead extends CaterpillarBase {
   /*late EatCallback eatCallback;
   late CrashCallback crashCallback;
   late caterpillarCrash caterpillarCrash;*/
+  bool wallCollided = false;
   EatCallback? caterpillarEat;
   List<int> foodToProcess = [];
   CaterpillarHead({required Vector2 position, required int id})
@@ -74,7 +76,14 @@ class CaterpillarHead extends CaterpillarBase {
     } else if (other is FoodBase && caterpillarEat != null) {
       caterpillarEat!(other.type);
       other.shouldRemove = true;
+    } else if (other is WallBase) {
+      wallCollided = true;
     }
+  }
+
+  @override
+  void onCollisionEnd(Collidable other) {
+    wallCollided = false;
   }
 
   @override
@@ -83,7 +92,7 @@ class CaterpillarHead extends CaterpillarBase {
     Paint bckg = Paint()
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round
-      ..color = Colors.red;
+      ..color = wallCollided ? Colors.green : Colors.red;
     canvas.drawCircle(_center, SizeProvider.getSize(), paint);
     canvas.drawCircle(_center, SizeProvider.getSize() - 2, bckg);
     super.render(canvas);
@@ -133,7 +142,7 @@ class CaterpillarBody extends CaterpillarBase {
             foodPaint);
       }
     }
-    debugMode = true;
+    //debugMode = true;
     super.render(canvas);
   }
 

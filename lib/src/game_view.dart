@@ -1,16 +1,13 @@
-import 'dart:math';
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import 'package:catterpillardream/src/game_core.dart';
 
 import 'base_view.dart';
-
 import 'caterpillar.dart';
 
 class GameView extends BaseView {
+  bool renderGrid = false;
   GameView(GameCore game) : super(game);
 
   double _direction = 0;
@@ -30,7 +27,7 @@ class GameView extends BaseView {
     _playerId = cat.id();
 
     for (var i = 0; i < 10; ++i) {
-      game.addFood(_colors);
+      game.addFood(colors: _colors);
     }
   }
 
@@ -54,12 +51,27 @@ class GameView extends BaseView {
     caterpillars.forEach((key, value) {
       value.render(c);
     });
+
+    if (renderGrid) {
+      Paint paint = Paint()
+        ..color = Colors.grey
+        ..strokeWidth = 1;
+      double x = 100;
+      while (x < game.screenSize.x) {
+        c.drawLine(Offset(x, 0), Offset(x, game.screenSize.y), paint);
+        x += 100;
+      }
+      double y = 100;
+      while (y < game.screenSize.y) {
+        c.drawLine(Offset(0, y), Offset(game.screenSize.x, y), paint);
+        y += 100;
+      }
+    }
   }
 
   @override
   void joypadChanged(double degrees, double distance) {
     _direction = degrees;
-    print("direction $_direction");
     if (caterpillars.keys.contains(_playerId)) {
       caterpillars[_playerId]!.directionChanged(_direction, distance);
     }

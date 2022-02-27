@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:control_pad/control_pad.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void init() {
-    _game = GameCore();
+    _game = GameCore(toggleJoyPad);
     _gameWidget = GameWidget(game: _game);
     _joypad = _createJoyPad();
     widgets = [
@@ -90,21 +88,19 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
   }
 
-  void toggleJoyPad() {
+  void toggleJoyPad(bool visible) {
     setState(() {
+      joypadVisible = visible;
       if (joypadVisible) {
         widgets = [
           _gameWidget,
           _joypad,
-          ElevatedButton(child: const Text("try"), onPressed: toggleJoyPad),
         ];
       } else {
         widgets = [
           _gameWidget,
-          ElevatedButton(child: const Text("try"), onPressed: toggleJoyPad),
         ];
       }
-      joypadVisible = !joypadVisible;
     });
   }
 

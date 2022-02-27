@@ -6,9 +6,18 @@
     "configurations": [
 
         {
-            "name": "catterpillardream",
+            "name": "desktop",
             "request": "launch",
             "type": "dart",
+            "args": [
+                "--no-sound-null-safety"
+            ]
+        },
+        {
+            "name": "web",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome",
             "args": [
                 "--no-sound-null-safety"
             ]
