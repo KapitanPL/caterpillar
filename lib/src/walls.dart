@@ -1,4 +1,5 @@
 import 'package:catterpillardream/src/globals.dart';
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 import 'dart:ui';
@@ -6,7 +7,7 @@ import 'dart:ui';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
 
-class WallBase extends RectangleComponent with Collidable {
+class WallBase extends RectangleComponent with CollisionCallbacks {
   bool isDestructible = false;
   List<Vector2> _points = [];
   Vector2? _center;
@@ -23,12 +24,11 @@ class WallBase extends RectangleComponent with Collidable {
           paint: paint,
           position: position,
           size: size,
-          scale: scale,
           angle: angle,
           anchor: anchor,
           priority: priority,
         ) {
-    addHitbox(HitboxRectangle());
+    add(RectangleHitbox());
   }
 
   void setPointsAround(List<List<Vector2>> points) {

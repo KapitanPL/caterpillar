@@ -5,6 +5,8 @@ import 'package:catterpillardream/src/game_core.dart';
 
 import 'base_view.dart';
 import 'caterpillar.dart';
+import 'globals.dart';
+import 'rules.dart';
 
 class GameView extends BaseView {
   bool renderGrid = false;
@@ -29,6 +31,21 @@ class GameView extends BaseView {
     for (var i = 0; i < 10; ++i) {
       game.addFood(colors: _colors);
     }
+
+    double wallThickness = 10;
+    List<Vector2> points = [
+      Vector2(wallThickness, wallThickness),
+      Vector2(game.screenSize.x - wallThickness, wallThickness),
+      Vector2(
+          game.screenSize.x - wallThickness, game.screenSize.y - wallThickness),
+      Vector2(wallThickness, game.screenSize.y - wallThickness),
+    ];
+
+    game.addWall(points: points, close: true);
+
+    Rules rules = Rules();
+    rules.canColideWithSelf = false;
+    RulesProvider.rules = rules;
   }
 
   @override

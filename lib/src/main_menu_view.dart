@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:catterpillardream/src/caterpillar_base.dart';
 import 'package:catterpillardream/src/globals.dart';
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -49,7 +50,7 @@ class MainMenuView extends GameView {
     caterpillars[cat4.id()] = cat4;*/
 
     for (var i = 0; i < 10; ++i) {
-      game.addFood(colors: _colors, position: Vector2(1000, 500));
+      game.addFood(colors: _colors);
     }
 
     double wallThickness = 10;
@@ -71,14 +72,11 @@ class MainMenuView extends GameView {
   FoodBase? findClosestFood(CaterpillarHead head) {
     double minDistance = double.maxFinite;
     FoodBase? closestFood;
-    for (var i = 0; i < game.collidables.length; ++i) {
-      if (game.collidables[i] is FoodBase) {
-        FoodBase food = game.collidables[i] as FoodBase;
-        double distance = (food.distance(head));
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestFood = food;
-        }
+    for (FoodBase food in game.food) {
+      double distance = (food.distance(head));
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestFood = food;
       }
     }
     return closestFood;
@@ -105,5 +103,12 @@ class MainMenuView extends GameView {
       }
     }
     super.update(t);
+  }
+
+  @override
+  void deactivate() {
+    while (game.positionComponentsCache.isNotEmpty) {
+      game.positionComponentsCache.first.shouldRemove = true;
+    }
   }
 }

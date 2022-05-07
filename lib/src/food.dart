@@ -1,24 +1,28 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:catterpillardream/src/freespace_path_finding.dart';
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 
+import 'caterpillar_base.dart';
 import 'color_maps.dart';
 import 'globals.dart';
 
 typedef FoodEatenCallback = void Function();
 
-class FoodBase extends PositionComponent
-    with HasHitboxes, Collidable, HasGameRef {
+class FoodBase extends PositionComponent with CollisionCallbacks, HasGameRef {
   double _time = 0;
   int type = 0;
   FoodEatenCallback eaten;
   static var rand = Random();
+  bool _wasEaten = false;
   FoodBase({required Vector2 position, required this.type, required this.eaten})
       : super(position: position, size: SizeProvider.getDoubleVector2Size()) {
     anchor = Anchor.center;
-    addHitbox(HitboxCircle());
+
+    add(CircleHitbox());
     _time = rand.nextDouble();
   }
 
@@ -48,6 +52,14 @@ class FoodBase extends PositionComponent
   }
 
   @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (other is CaterpillarHead) {
+      _wasEaten = true;
+    }
+  }
+
+  @override
   void update(double dt) {
     _time += dt;
     super.update(dt);
@@ -55,7 +67,9 @@ class FoodBase extends PositionComponent
 
   @override
   void onRemove() {
-    eaten();
+    if (_wasEaten) {
+      eaten();
+    }
     super.onRemove();
   }
 }

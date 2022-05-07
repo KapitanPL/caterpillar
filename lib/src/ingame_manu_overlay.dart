@@ -4,47 +4,47 @@ import 'base_menu_overlay.dart';
 import 'package:catterpillardream/src/game_core.dart';
 import 'package:flutter/material.dart';
 
-enum MainMenuContext {
+enum InGameMenuContext {
   MainMenu,
   MainOptions,
   Controls,
 }
 
-class MainMenuOverllay extends MenuOverllay {
-  MainMenuOverllay({required Key key, required GameCore game})
+class InGameMenuOverllay extends MenuOverllay {
+  InGameMenuOverllay({required Key key, required GameCore game})
       : super(key: key, game: game);
 
   @override
-  MenuOverllayState createState() => _MainMenuOverllayState(game: game);
+  MenuOverllayState createState() => _InGameMenuOverllayState(game: game);
 }
 
-class _MainMenuOverllayState extends MenuOverllayState {
-  MainMenuContext _context = MainMenuContext.MainMenu;
-  _MainMenuOverllayState({required GameCore game}) : super(game: game);
+class _InGameMenuOverllayState extends MenuOverllayState {
+  InGameMenuContext _context = InGameMenuContext.MainMenu;
+  _InGameMenuOverllayState({required GameCore game}) : super(game: game);
 
   Column mainMenu(BuildContext context) {
     List<Widget> buttons = [
-      button("NewGame", game.startNewGame),
       button(
           "Options",
           () => {
                 setState(() {
-                  _context = MainMenuContext.MainOptions;
+                  _context = InGameMenuContext.MainOptions;
                 })
               }),
-      button("Quit", () => exit(0)),
+      button("Back to game", () {
+        game.pauseGame(false);
+      }),
     ];
     return menuGroup(buttons);
   }
 
   Column mainOptions(BuildContext context) {
     List<Widget> buttons = [
-      button("NewGame", game.startNewGame),
       button(
           "Back to Main",
           () => {
                 setState(() {
-                  _context = MainMenuContext.MainMenu;
+                  _context = InGameMenuContext.MainMenu;
                 })
               }),
     ];
@@ -59,15 +59,15 @@ class _MainMenuOverllayState extends MenuOverllayState {
   @override
   Widget build(BuildContext context) {
     switch (_context) {
-      case MainMenuContext.MainMenu:
+      case InGameMenuContext.MainMenu:
         {
           return mainMenu(context);
         }
-      case MainMenuContext.MainOptions:
+      case InGameMenuContext.MainOptions:
         {
           return mainOptions(context);
         }
-      case MainMenuContext.Controls:
+      case InGameMenuContext.Controls:
         {
           return controls(context);
         }

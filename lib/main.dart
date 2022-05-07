@@ -1,11 +1,11 @@
 import 'package:control_pad/control_pad.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'src/globals.dart';
 import 'src/game_core.dart';
 import 'src/main_menu_overlay.dart';
+import 'src/ingame_manu_overlay.dart';
 
 //zen mode - score only
 //map mode - candy-crush
@@ -53,11 +53,20 @@ class _MyHomePageState extends State<MyHomePage> {
   bool joypadVisible = true;
   late GameWidget _gameWidget;
   late Column _joypad;
+  late MainMenuOverllay _mainMenu;
+  late InGameMenuOverllay _inGameMenu;
   List<Widget> widgets = [];
   late GameCore _game;
+  final FocusNode _fn = FocusNode(debugLabel: "main focus");
 
   _MyHomePageState() : super() {
     init();
+  }
+
+  @override
+  void dispose() {
+    _fn.dispose();
+    super.dispose();
   }
 
   void setControls(ControlSide side) {
@@ -78,13 +87,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void init() {
-    _game = GameCore(toggleJoyPad);
+    _game = GameCore(toggleJoyPad, toggleMainMenu);
     _gameWidget = GameWidget(game: _game);
     _joypad = _createJoyPad();
+    _mainMenu = MainMenuOverllay(key: const Key("overlay"), game: _game);
+    _inGameMenu = InGameMenuOverllay(key: const Key("overlay"), game: _game);
     widgets = [
       _gameWidget,
       _joypad,
-      //MainMenuOverllay(key: const Key("overlay"), game: _game)
     ];
   }
 
@@ -104,10 +114,26 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void toggleMainMenu({required bool visible, bool inGameMenu = false}) {
+    setState(() {
+      widgets.remove(inGameMenu ? _inGameMenu : _mainMenu);
+      if (visible) {
+        widgets.add(inGameMenu ? _inGameMenu : _mainMenu);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(children: widgets),
+    _fn.requestFocus();
+    return RawKeyboardListener(
+      autofocus: true,
+      focusNode: _fn,
+      child: Scaffold(body: Stack(children: widgets)),
+      onKey: (event) {
+        print("!!!EVENT!!!");
+        _game.processKey(event);
+      },
     );
   }
 

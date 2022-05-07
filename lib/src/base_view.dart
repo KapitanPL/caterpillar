@@ -9,10 +9,7 @@ class PrimitiveTypeWrapper<T> {
   PrimitiveTypeWrapper(this.val);
 }
 
-enum BaseViewType {
-  MainMenu,
-  Game,
-}
+enum BaseViewType { MainMenu, Game }
 
 abstract class BaseView {
   late final GameCore game;

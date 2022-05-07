@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:catterpillardream/src/food.dart';
 import 'package:catterpillardream/src/walls.dart';
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class FoodInCaterpillar {
 }
 
 class CaterpillarBase extends PositionComponent
-    with HasHitboxes, Collidable, HasGameRef {
+    with CollisionCallbacks, HasGameRef {
   int caterpiallarId;
   double time = 0;
   FoodInCaterpillar food = FoodInCaterpillar();
@@ -49,7 +50,7 @@ class CaterpillarBase extends PositionComponent
   final Offset _center = SizeProvider.getDoubleVector2Size().toOffset() / 2;
   CaterpillarBase({required Vector2 position, required this.caterpiallarId})
       : super(position: position, size: SizeProvider.getDoubleVector2Size()) {
-    addHitbox(HitboxCircle());
+    add(CircleHitbox());
   }
 
   void setFood(int type) {
@@ -69,7 +70,7 @@ class CaterpillarHead extends CaterpillarBase {
       : super(position: position, caterpiallarId: id);
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, Collidable other) {
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (other is CaterpillarBase && caterpillarCrash != null) {
       caterpillarCrash!(other);
@@ -82,7 +83,7 @@ class CaterpillarHead extends CaterpillarBase {
   }
 
   @override
-  void onCollisionEnd(Collidable other) {
+  void onCollisionEnd(PositionComponent other) {
     wallCollided = false;
   }
 
@@ -147,7 +148,7 @@ class CaterpillarBody extends CaterpillarBase {
   }
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, Collidable other) {
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     if (other is CaterpillarHead && canColideWithHead) {
       isColided = true;
     }
@@ -155,7 +156,7 @@ class CaterpillarBody extends CaterpillarBase {
   }
 
   @override
-  void onCollisionEnd(Collidable other) {
+  void onCollisionEnd(PositionComponent other) {
     isColided = false;
   }
 }
