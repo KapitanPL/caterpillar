@@ -1,13 +1,13 @@
 import 'dart:math';
 
-import 'package:catterpillardream/src/walls.dart';
+import 'package:catterpillardream/src/gameComponents/walls.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
 
-import 'globals.dart';
-import 'game_core.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
+import 'package:catterpillardream/src/game_core.dart';
 
 class IntersectionInfo {
   int leftIndex;

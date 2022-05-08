@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 
 import 'package:catterpillardream/src/game_core.dart';
 
-import 'base_view.dart';
-import 'caterpillar.dart';
-import 'globals.dart';
-import 'rules.dart';
+import 'package:catterpillardream/src/views/base_view.dart';
+import 'package:catterpillardream/src/gameComponents/caterpillar.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
+import 'package:catterpillardream/src/gameSettings/rules.dart';
+import 'package:catterpillardream/src/utils/primitive_type_wrapper.dart';
 
 class GameView extends BaseView {
   bool renderGrid = false;

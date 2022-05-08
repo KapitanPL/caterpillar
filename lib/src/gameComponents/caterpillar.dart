@@ -6,10 +6,10 @@ import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 
 import 'caterpillar_base.dart';
-import 'color_maps.dart';
-import 'freespace_path_finding.dart';
-import 'globals.dart';
-import 'trajectory.dart';
+import 'package:catterpillardream/src/gameSettings/color_maps.dart';
+import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
+import 'package:catterpillardream/src/pathFinding/trajectory.dart';
 
 typedef IterateCallback = void Function(int index, dynamic arg);
 

@@ -1,14 +1,13 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:catterpillardream/src/freespace_path_finding.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 
 import 'caterpillar_base.dart';
-import 'color_maps.dart';
-import 'globals.dart';
+import 'package:catterpillardream/src/gameSettings/color_maps.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
 
 typedef FoodEatenCallback = void Function();
 
