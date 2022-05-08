@@ -2,10 +2,10 @@ import 'package:control_pad/control_pad.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'src/globals.dart';
+import 'src/gameSettings/globals.dart';
 import 'src/game_core.dart';
-import 'src/main_menu_overlay.dart';
-import 'src/ingame_manu_overlay.dart';
+import 'src/menu_overlays/main_menu_overlay.dart';
+import 'src/menu_overlays/ingame_manu_overlay.dart';
 
 //zen mode - score only
 //map mode - candy-crush

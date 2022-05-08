@@ -1,19 +1,20 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:catterpillardream/src/freespace_path_finding.dart';
-import 'package:catterpillardream/src/game_view.dart';
-import 'package:catterpillardream/src/main_menu_view.dart';
+import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
+import 'package:catterpillardream/src/views/base_view.dart';
+import 'package:catterpillardream/src/views/game_view.dart';
+import 'package:catterpillardream/src/views/main_menu_view.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'base_view.dart';
-import 'caterpillar.dart';
-import 'food.dart';
-import 'walls.dart';
+import 'package:catterpillardream/src/gameComponents/caterpillar.dart';
+import 'package:catterpillardream/src/gameComponents/food.dart';
+import 'package:catterpillardream/src/utils/primitive_type_wrapper.dart';
+import 'gameComponents/walls.dart';
 
 typedef ToggleVisible = void Function(bool visible);
 typedef ToggleMenu = void Function({required bool visible, bool inGameMenu});

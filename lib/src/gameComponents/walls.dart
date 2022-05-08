@@ -1,4 +1,4 @@
-import 'package:catterpillardream/src/globals.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 

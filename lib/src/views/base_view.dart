@@ -1,13 +1,6 @@
-import 'game_core.dart';
-import 'globals.dart';
+import 'package:catterpillardream/src/game_core.dart';
 
-import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-
-class PrimitiveTypeWrapper<T> {
-  late T val;
-  PrimitiveTypeWrapper(this.val);
-}
 
 enum BaseViewType { MainMenu, Game }
 

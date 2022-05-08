@@ -1,19 +1,19 @@
 import 'dart:math';
 
-import 'package:catterpillardream/src/caterpillar_base.dart';
-import 'package:catterpillardream/src/globals.dart';
+import 'package:catterpillardream/src/gameComponents/caterpillar_base.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 
-import 'game_view.dart';
-import 'caterpillar.dart';
-import 'game_core.dart';
-import 'food.dart';
-import 'rules.dart';
+import 'package:catterpillardream/src//views/game_view.dart';
+import 'package:catterpillardream/src/gameComponents/caterpillar.dart';
+import 'package:catterpillardream/src/game_core.dart';
+import 'package:catterpillardream/src/gameComponents/food.dart';
+import 'package:catterpillardream/src/gameSettings/rules.dart';
 
-import 'freespace_path_finding.dart';
+import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
 
 class MainMenuView extends GameView {
   late final GameCore _game;

@@ -1,14 +1,14 @@
 import 'dart:ui';
 
-import 'package:catterpillardream/src/food.dart';
-import 'package:catterpillardream/src/walls.dart';
+import 'package:catterpillardream/src/gameComponents/food.dart';
+import 'package:catterpillardream/src/gameComponents/walls.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
 
-import 'color_maps.dart';
-import 'globals.dart';
+import 'package:catterpillardream/src/gameSettings/color_maps.dart';
+import 'package:catterpillardream/src/gameSettings/globals.dart';
 
 typedef EatCallback = void Function(int what);
 typedef CrashCallback = void Function();
