@@ -238,7 +238,8 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   void processKey(RawKeyEvent event) {
     if (event is RawKeyUpEvent) {
-      if (event.physicalKey == PhysicalKeyboardKey.escape) {
+      if (event.physicalKey == PhysicalKeyboardKey.escape &&
+          _activeView == BaseViewType.Game) {
         pauseGame(!_gameState.isPaused());
       }
     }

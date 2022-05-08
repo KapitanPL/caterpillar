@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late InGameMenuOverllay _inGameMenu;
   List<Widget> widgets = [];
   late GameCore _game;
-  final FocusNode _fn = FocusNode(debugLabel: "main focus");
+  final FocusNode _fn = FocusNode();
 
   _MyHomePageState() : super() {
     init();
@@ -90,8 +90,10 @@ class _MyHomePageState extends State<MyHomePage> {
     _game = GameCore(toggleJoyPad, toggleMainMenu);
     _gameWidget = GameWidget(game: _game);
     _joypad = _createJoyPad();
-    _mainMenu = MainMenuOverllay(key: const Key("overlay"), game: _game);
-    _inGameMenu = InGameMenuOverllay(key: const Key("overlay"), game: _game);
+    _mainMenu =
+        MainMenuOverllay(key: const Key("mainMenuOverlay"), game: _game);
+    _inGameMenu =
+        InGameMenuOverllay(key: const Key("inGameMenuOverlay"), game: _game);
     widgets = [
       _gameWidget,
       _joypad,
