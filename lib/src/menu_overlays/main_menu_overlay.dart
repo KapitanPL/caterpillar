@@ -4,12 +4,6 @@ import 'base_menu_overlay.dart';
 import 'package:catterpillardream/src/game_core.dart';
 import 'package:flutter/material.dart';
 
-enum MainMenuContext {
-  MainMenu,
-  MainOptions,
-  Controls,
-}
-
 class MainMenuOverllay extends MenuOverllay {
   MainMenuOverllay({required Key key, required GameCore game})
       : super(key: key, game: game);
@@ -19,7 +13,6 @@ class MainMenuOverllay extends MenuOverllay {
 }
 
 class _MainMenuOverllayState extends MenuOverllayState {
-  MainMenuContext _context = MainMenuContext.MainMenu;
   _MainMenuOverllayState({required GameCore game}) : super(game: game);
 
   Column mainMenu(BuildContext context) {
@@ -29,7 +22,14 @@ class _MainMenuOverllayState extends MenuOverllayState {
           "Options",
           () => {
                 setState(() {
-                  _context = MainMenuContext.MainOptions;
+                  menuContext = MenuContext.Options;
+                })
+              }),
+      button(
+          "Controls",
+          () => {
+                setState(() {
+                  menuContext = MenuContext.Controls;
                 })
               }),
       button("Quit", () => exit(0)),
@@ -44,30 +44,25 @@ class _MainMenuOverllayState extends MenuOverllayState {
           "Back to Main",
           () => {
                 setState(() {
-                  _context = MainMenuContext.MainMenu;
+                  menuContext = MenuContext.Root;
                 })
               }),
     ];
     return menuGroup(buttons);
   }
 
-  Column controls(BuildContext context) {
-    List<Widget> buttons = [];
-    return menuGroup(buttons);
-  }
-
   @override
   Widget build(BuildContext context) {
-    switch (_context) {
-      case MainMenuContext.MainMenu:
+    switch (menuContext) {
+      case MenuContext.Root:
         {
           return mainMenu(context);
         }
-      case MainMenuContext.MainOptions:
+      case MenuContext.Options:
         {
           return mainOptions(context);
         }
-      case MainMenuContext.Controls:
+      case MenuContext.Controls:
         {
           return controls(context);
         }

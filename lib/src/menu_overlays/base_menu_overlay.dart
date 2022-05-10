@@ -1,7 +1,16 @@
 import 'package:catterpillardream/src/game_core.dart';
 import 'package:flutter/material.dart';
+import 'package:catterpillardream/src/gameSettings/ingame_settings.dart';
+
+import 'package:catterpillardream/src/menu_overlays/widgets/button_selectors.dart';
 
 typedef ButtonCallback = void Function();
+
+enum MenuContext {
+  Root,
+  Options,
+  Controls,
+}
 
 class MenuOverllay extends StatefulWidget {
   final GameCore game;
@@ -12,6 +21,7 @@ class MenuOverllay extends StatefulWidget {
 }
 
 class MenuOverllayState extends State<MenuOverllay> {
+  MenuContext menuContext = MenuContext.Root;
   final GameCore game;
   MenuOverllayState({required this.game});
 
@@ -47,5 +57,47 @@ class MenuOverllayState extends State<MenuOverllay> {
   @override
   Widget build(BuildContext context) {
     return menuGroup([]);
+  }
+
+  Column controls(BuildContext context) {
+    List<Widget> buttons = [];
+    // controls
+    buttons.addAll([
+      const Text("Controls: ",
+          style: TextStyle(
+            color: Colors.amber,
+          )),
+      RadioButtonList<Controls>(
+        key: const Key("RadioControls"),
+        captions: const ["Joypad", "Mouse"],
+        values: const <Controls>{Controls.joypad, Controls.tapPoint},
+        initValue: Controls.joypad,
+        onButtonChanged: (Controls value) => setState(() {
+          GameSettings.controls = value;
+        }),
+      )
+    ]);
+    if (GameSettings.controls == Controls.joypad) {
+      buttons.addAll([
+        const Text("Joypad position: ",
+            style: TextStyle(
+              color: Colors.amber,
+            )),
+        const RadioButtonList(
+            key: Key("RadioControlsPosition"),
+            captions: ["Left", "Right"],
+            values: <JoipadPosition>{JoipadPosition.left, JoipadPosition.right},
+            initValue: JoipadPosition.right)
+      ]);
+    }
+    // back
+    buttons.add(button(
+        "Back to Main",
+        () => {
+              setState(() {
+                menuContext = MenuContext.Root;
+              })
+            }));
+    return menuGroup(buttons);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
-import 'rules.dart';
+import 'package:catterpillardream/src/gameSettings/rules.dart';
+import 'package:catterpillardream/src/gameSettings/ingame_settings.dart';
 
 class SizeProvider {
   static double _staticSize = 5;
