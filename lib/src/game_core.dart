@@ -16,6 +16,8 @@ import 'package:catterpillardream/src/gameComponents/food.dart';
 import 'package:catterpillardream/src/utils/primitive_type_wrapper.dart';
 import 'gameComponents/walls.dart';
 
+import 'package:catterpillardream/src/gameSettings/globals.dart';
+
 typedef ToggleVisible = void Function(bool visible);
 typedef ToggleMenu = void Function({required bool visible, bool inGameMenu});
 
