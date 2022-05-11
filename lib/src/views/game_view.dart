@@ -1,3 +1,4 @@
+import 'package:catterpillardream/src/gameComponents/caterpillar_base.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
@@ -97,4 +98,10 @@ class GameView extends BaseView {
 
   @override
   void deactivate() {}
+
+  @override
+  Vector2 getHeadCenterPosition() {
+    CaterpillarBase head = caterpillars[_playerId]!.caterpillar.first;
+    return head.position + head.size / 2;
+  }
 }

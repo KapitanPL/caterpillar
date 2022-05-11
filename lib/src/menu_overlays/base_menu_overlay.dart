@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:catterpillardream/src/game_core.dart';
 import 'package:flutter/material.dart';
 import 'package:catterpillardream/src/gameSettings/ingame_settings.dart';
@@ -62,6 +63,8 @@ class MenuOverllayState extends State<MenuOverllay> {
   Column controls(BuildContext context) {
     List<Widget> buttons = [];
     // controls
+    bool isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    String tapPointName = isDesktop ? "Mouse" : "Touch";
     buttons.addAll([
       const Text("Controls: ",
           style: TextStyle(
@@ -69,7 +72,7 @@ class MenuOverllayState extends State<MenuOverllay> {
           )),
       RadioButtonList<Controls>(
         key: const Key("RadioControls"),
-        captions: const ["Joypad", "Mouse"],
+        captions: ["Joypad", tapPointName],
         values: const <Controls>{Controls.joypad, Controls.tapPoint},
         initValue: Controls.joypad,
         onButtonChanged: (Controls value) => setState(() {
@@ -83,11 +86,18 @@ class MenuOverllayState extends State<MenuOverllay> {
             style: TextStyle(
               color: Colors.amber,
             )),
-        const RadioButtonList(
-            key: Key("RadioControlsPosition"),
-            captions: ["Left", "Right"],
-            values: <JoipadPosition>{JoipadPosition.left, JoipadPosition.right},
-            initValue: JoipadPosition.right)
+        RadioButtonList<JoypadPosition>(
+          key: const Key("RadioControlsPosition"),
+          captions: const ["Left", "Right"],
+          values: const <JoypadPosition>{
+            JoypadPosition.left,
+            JoypadPosition.right
+          },
+          initValue: JoypadPosition.right,
+          onButtonChanged: (JoypadPosition value) {
+            widget.game.joypadPositionChanged?.call(value);
+          },
+        )
       ]);
     }
     // back

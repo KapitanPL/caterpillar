@@ -3,12 +3,12 @@ enum Controls {
   joypad,
 }
 
-enum JoipadPosition {
+enum JoypadPosition {
   right,
   left,
 }
 
 class GameSettings {
   static Controls controls = Controls.joypad;
-  static JoipadPosition joypadPosition = JoipadPosition.right;
+  static JoypadPosition joypadPosition = JoypadPosition.right;
 }

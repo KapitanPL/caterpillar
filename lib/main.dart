@@ -3,6 +3,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import 'src/gameSettings/globals.dart';
+import 'src/gameSettings/ingame_settings.dart';
 import 'src/game_core.dart';
 import 'src/menu_overlays/main_menu_overlay.dart';
 import 'src/menu_overlays/ingame_manu_overlay.dart';
@@ -45,17 +46,14 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-enum ControlSide { left, right }
-
 class _MyHomePageState extends State<MyHomePage> {
-  ControlSide _controls = ControlSide.right;
+  JoypadPosition _controls = JoypadPosition.right;
   double _size = 150;
   bool joypadVisible = true;
+  bool inGameMenu = false;
   late GameWidget _gameWidget;
-  late Column _joypad;
   late MainMenuOverllay _mainMenu;
   late InGameMenuOverllay _inGameMenu;
-  List<Widget> widgets = [];
   late GameCore _game;
   final FocusNode _fn = FocusNode();
 
@@ -69,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void setControls(ControlSide side) {
+  void setControls(JoypadPosition side) {
     setState(() {
       _controls = side;
     });
@@ -87,41 +85,27 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void init() {
-    _game = GameCore(toggleJoyPad, toggleMainMenu);
+    _game = GameCore();
+    _game.toggleJoypadCallback = toggleJoyPad;
+    _game.toggleMainMenuCallback = toggleMainMenu;
+    _game.joypadPositionChanged = setControls;
     _gameWidget = GameWidget(game: _game);
-    _joypad = _createJoyPad();
     _mainMenu =
         MainMenuOverllay(key: const Key("mainMenuOverlay"), game: _game);
     _inGameMenu =
         InGameMenuOverllay(key: const Key("inGameMenuOverlay"), game: _game);
-    widgets = [
-      _gameWidget,
-      _joypad,
-    ];
+    joypadVisible = GameSettings.controls == Controls.joypad;
   }
 
   void toggleJoyPad(bool visible) {
     setState(() {
       joypadVisible = visible;
-      if (joypadVisible) {
-        widgets = [
-          _gameWidget,
-          _joypad,
-        ];
-      } else {
-        widgets = [
-          _gameWidget,
-        ];
-      }
     });
   }
 
-  void toggleMainMenu({required bool visible, bool inGameMenu = false}) {
+  void toggleMainMenu(bool gameMenu) {
     setState(() {
-      widgets.remove(inGameMenu ? _inGameMenu : _mainMenu);
-      if (visible) {
-        widgets.add(inGameMenu ? _inGameMenu : _mainMenu);
-      }
+      inGameMenu = gameMenu;
     });
   }
 
@@ -131,18 +115,36 @@ class _MyHomePageState extends State<MyHomePage> {
     return RawKeyboardListener(
       autofocus: true,
       focusNode: _fn,
-      child: Scaffold(body: Stack(children: widgets)),
+      child: Listener(
+        child: Scaffold(body: Stack(children: getWidgets())),
+        onPointerMove: (event) => _game.mouseMoved(event),
+        onPointerHover: (event) => _game.mouseMoved(event),
+      ),
       onKey: (event) {
-        print("!!!EVENT!!!");
         _game.processKey(event);
       },
     );
   }
 
+  List<Widget> getWidgets() {
+    List<Widget> widgets = [_gameWidget];
+    if (GameSettings.controls == Controls.joypad && joypadVisible) {
+      widgets.add(_createJoyPad());
+    }
+    if (_game.gameState.isMenu()) {
+      if (inGameMenu) {
+        widgets.add(_inGameMenu);
+      } else {
+        widgets.add(_mainMenu);
+      }
+    }
+    return widgets;
+  }
+
   Column _createJoyPad() {
     return Column(mainAxisAlignment: MainAxisAlignment.end, children: [
       Row(
-          mainAxisAlignment: _controls == ControlSide.right
+          mainAxisAlignment: _controls == JoypadPosition.right
               ? MainAxisAlignment.end
               : MainAxisAlignment.start,
           children: [
