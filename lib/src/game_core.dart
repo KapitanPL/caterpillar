@@ -8,6 +8,7 @@ import 'package:catterpillardream/src/views/main_menu_view.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,9 +18,11 @@ import 'package:catterpillardream/src/utils/primitive_type_wrapper.dart';
 import 'gameComponents/walls.dart';
 
 import 'package:catterpillardream/src/gameSettings/globals.dart';
+import 'package:catterpillardream/src/gameSettings/ingame_settings.dart';
 
 typedef ToggleVisible = void Function(bool visible);
-typedef ToggleMenu = void Function({required bool visible, bool inGameMenu});
+typedef ToggleMenu = void Function({bool inGameMenu});
+typedef EnumChanged<T> = void Function(T value);
 
 extension CollisionResolver on PositionComponent {
   List<Hitbox> getHitboxes() {
@@ -124,16 +127,19 @@ class GameCore extends FlameGame with HasCollisionDetection {
   late Vector2 screenSize;
   final Map<BaseViewType, BaseView> _views = {};
   late BaseViewType _activeView;
-  late final GameState _gameState;
+  late final GameState gameState;
   final Random _random = Random();
-  late final ToggleVisible _toggleJoypadCallback;
-  late final ToggleMenu _toggleMainMenuCallback;
+  ToggleVisible? toggleJoypadCallback;
+  ToggleVisible? toggleMainMenuCallback;
 
   final List<PositionComponent> positionComponentsCache = [];
   final List<FoodBase> food = [];
 
-  GameCore(this._toggleJoypadCallback, this._toggleMainMenuCallback) {
-    _gameState = GameState(game: this);
+  EnumChanged<JoypadPosition>? joypadPositionChanged;
+
+  GameCore() {
+    gameState = GameState(game: this);
+    gameState.setMenu(true);
   }
 
   @override
@@ -147,16 +153,17 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   void onViewActivated() {
     _views[_activeView]?.activate();
-    _toggleJoypadCallback(_activeView == BaseViewType.Game);
-    _toggleMainMenuCallback(visible: _activeView == BaseViewType.MainMenu);
+    toggleJoypadCallback?.call(_activeView == BaseViewType.Game);
+    toggleMainMenuCallback?.call(false);
   }
 
   void onModeChanged() {
-    _toggleMainMenuCallback(visible: _gameState.isMenu(), inGameMenu: true);
+    toggleMainMenuCallback?.call(true);
   }
 
   void startNewGame() {
     _views[_activeView]?.deactivate();
+    gameState.setMenu(false);
     _activeView = BaseViewType.Game;
     onViewActivated();
   }
@@ -220,7 +227,7 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   @override
   void update(double dt) {
-    if (dt > 0 && dt < 1 && !_gameState.isPaused()) {
+    if (dt > 0 && dt < 1 && !gameState.isPaused()) {
       _views[_activeView]?.update(dt);
     }
     super.update(dt);
@@ -242,14 +249,24 @@ class GameCore extends FlameGame with HasCollisionDetection {
     if (event is RawKeyUpEvent) {
       if (event.physicalKey == PhysicalKeyboardKey.escape &&
           _activeView == BaseViewType.Game) {
-        pauseGame(!_gameState.isPaused());
+        pauseGame(!gameState.isPaused());
       }
     }
   }
 
+  void mouseMoved(PointerEvent event) {
+    if (GameSettings.controls == Controls.tapPoint) {
+      double degrees = CaterpillarPath.getStartEndAngle(
+          _views[_activeView]!.getHeadCenterPosition(),
+          Vector2(event.position.dx, event.position.dy));
+      degrees = 360 * degrees / 2 / pi;
+      _views[_activeView]?.joypadChanged(degrees, 1);
+    }
+  }
+
   void pauseGame(bool pause) {
-    _gameState.setPaused(pause);
-    _gameState.setMenu(pause);
+    gameState.setPaused(pause);
+    gameState.setMenu(pause);
     if (pause) {
       pauseEngine();
     } else {
