@@ -95,7 +95,11 @@ class GameView extends BaseView {
   }
 
   @override
-  void deactivate() {}
+  void deactivate() {
+    while (game.positionComponentsCache.isNotEmpty) {
+      game.positionComponentsCache.first.shouldRemove = true;
+    }
+  }
 
   @override
   Vector2 getHeadCenterPosition() {

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'base_menu_overlay.dart';
 
 import 'package:catterpillardream/src/game_core.dart';
@@ -32,8 +33,10 @@ class _InGameMenuOverllayState extends MenuOverllayState {
                 })
               }),
       button("Back to game", () {
+        widget.game.gameState.setMenu(false);
         widget.game.pauseGame(false);
       }),
+      button("Quit to main menu", widget.game.endGameAndBackToMain),
     ];
     return menuGroup(buttons);
   }

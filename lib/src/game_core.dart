@@ -155,7 +155,7 @@ class GameCore extends FlameGame with HasCollisionDetection {
   void onViewActivated() {
     _views[_activeView]?.activate();
     toggleJoypadCallback?.call(_activeView == BaseViewType.Game);
-    toggleMainMenuCallback?.call(false);
+    toggleMainMenuCallback?.call(_activeView == BaseViewType.Game);
   }
 
   BaseView? getActiveView() {
@@ -163,13 +163,20 @@ class GameCore extends FlameGame with HasCollisionDetection {
   }
 
   void onModeChanged() {
-    toggleMainMenuCallback?.call(true);
+    toggleMainMenuCallback?.call(_activeView == BaseViewType.Game);
   }
 
   void startNewGame() {
     _views[_activeView]?.deactivate();
     gameState.setMenu(false);
     _activeView = BaseViewType.Game;
+    onViewActivated();
+  }
+
+  void endGameAndBackToMain() {
+    _views[_activeView]?.deactivate();
+    _activeView = BaseViewType.MainMenu;
+    pauseGame(false);
     onViewActivated();
   }
 
@@ -232,7 +239,7 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   @override
   void update(double dt) {
-    if (dt > 0 && dt < 1 && !gameState.isPaused()) {
+    if (dt > 0 && dt < 1 /*&& !gameState.isPaused()*/) {
       _views[_activeView]?.update(dt);
     }
     super.update(dt);
@@ -255,6 +262,7 @@ class GameCore extends FlameGame with HasCollisionDetection {
       if (event.physicalKey == PhysicalKeyboardKey.escape &&
           _activeView == BaseViewType.Game) {
         pauseGame(!gameState.isPaused());
+        gameState.setMenu(!gameState.isMenu());
       }
     }
   }
@@ -271,7 +279,6 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   void pauseGame(bool pause) {
     gameState.setPaused(pause);
-    gameState.setMenu(pause);
     if (pause) {
       pauseEngine();
     } else {

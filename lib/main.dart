@@ -90,10 +90,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void init() {
-    _game = GameCore();
-    _game.toggleJoypadCallback = toggleJoyPad;
-    _game.toggleMainMenuCallback = toggleMainMenu;
-    _game.joypadPositionChanged = setControls;
+    _game = GameCore()
+      ..toggleJoypadCallback = toggleJoyPad
+      ..toggleMainMenuCallback = toggleMainMenu
+      ..joypadPositionChanged = setControls;
     _gameWidget = GameWidget(game: _game);
     _mainMenu =
         MainMenuOverllay(key: const Key("mainMenuOverlay"), game: _game);
