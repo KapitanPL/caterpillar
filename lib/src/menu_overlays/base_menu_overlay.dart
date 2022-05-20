@@ -248,7 +248,8 @@ class MenuOverllayState extends State<MenuOverllay> {
     if (storedRules.rulesModifiable && !rules!.compareRules(storedRules)) {
       buttons.add(button("Save", () {
         setState(() {
-          storedRules = rules!;
+          RulesProvider.modifyRules(rulesKey!, rules!);
+          rules = null;
         });
       }));
     }

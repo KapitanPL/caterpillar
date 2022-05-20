@@ -88,6 +88,14 @@ class RulesProvider {
     return false;
   }
 
+  static void modifyRules(String key, Rules rules) async {
+    if (rules.rulesModifiable) {
+      _rules[key] = rules;
+      var storedSettings = await Hive.openBox(SETTINGS_NAME);
+      storedSettings.put("Rules:$key", rules);
+    }
+  }
+
   static void deleteRules(String key) {
     _rules.remove(key);
   }
