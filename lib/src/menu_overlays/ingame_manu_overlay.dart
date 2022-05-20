@@ -9,12 +9,11 @@ class InGameMenuOverllay extends MenuOverllay {
       : super(key: key, game: game);
 
   @override
-  MenuOverllayState createState() => _InGameMenuOverllayState(game: game);
+  MenuOverllayState createState() => _InGameMenuOverllayState();
 }
 
 class _InGameMenuOverllayState extends MenuOverllayState {
-  MenuContext menuContext = MenuContext.Root;
-  _InGameMenuOverllayState({required GameCore game}) : super(game: game);
+  _InGameMenuOverllayState() : super();
 
   Column mainMenu(BuildContext context) {
     List<Widget> buttons = [
@@ -33,21 +32,8 @@ class _InGameMenuOverllayState extends MenuOverllayState {
                 })
               }),
       button("Back to game", () {
-        game.pauseGame(false);
+        widget.game.pauseGame(false);
       }),
-    ];
-    return menuGroup(buttons);
-  }
-
-  Column mainOptions(BuildContext context) {
-    List<Widget> buttons = [
-      button(
-          "Back to Main",
-          () => {
-                setState(() {
-                  menuContext = MenuContext.Root;
-                })
-              }),
     ];
     return menuGroup(buttons);
   }
@@ -66,6 +52,10 @@ class _InGameMenuOverllayState extends MenuOverllayState {
       case MenuContext.Controls:
         {
           return controls(context);
+        }
+      case MenuContext.Rules:
+        {
+          return rulesSection(context);
         }
     }
   }

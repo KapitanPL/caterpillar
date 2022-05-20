@@ -6,6 +6,7 @@ import 'package:vector_math/vector_math_64.dart';
 enum BaseViewType { MainMenu, Game }
 
 abstract class BaseView {
+  String currentRules = "";
   late final GameCore game;
 
   BaseView(this.game);

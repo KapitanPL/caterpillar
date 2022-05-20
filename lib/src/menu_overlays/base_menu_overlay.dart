@@ -1,5 +1,9 @@
 import 'dart:io' show Platform;
+import 'package:catterpillardream/src/gameSettings/globals.dart';
+import 'package:catterpillardream/src/gameSettings/rules.dart';
 import 'package:catterpillardream/src/game_core.dart';
+import 'package:catterpillardream/src/menu_overlays/widgets/string_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:catterpillardream/src/gameSettings/ingame_settings.dart';
 
@@ -11,6 +15,7 @@ enum MenuContext {
   Root,
   Options,
   Controls,
+  Rules,
 }
 
 class MenuOverllay extends StatefulWidget {
@@ -18,13 +23,15 @@ class MenuOverllay extends StatefulWidget {
   MenuOverllay({required Key key, required this.game}) : super(key: key);
 
   @override
-  MenuOverllayState createState() => MenuOverllayState(game: game);
+  MenuOverllayState createState() => MenuOverllayState();
 }
 
 class MenuOverllayState extends State<MenuOverllay> {
   MenuContext menuContext = MenuContext.Root;
-  final GameCore game;
-  MenuOverllayState({required this.game});
+  bool ruleHintsVisible = false;
+  String? rulesKey;
+  Rules? rules;
+  MenuOverllayState();
 
   ElevatedButton button(String text, ButtonCallback callback) {
     return ElevatedButton(
@@ -63,7 +70,11 @@ class MenuOverllayState extends State<MenuOverllay> {
   Column controls(BuildContext context) {
     List<Widget> buttons = [];
     // controls
-    bool isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    bool isDesktop = kIsWeb
+        ? (defaultTargetPlatform != TargetPlatform.iOS &&
+            defaultTargetPlatform != TargetPlatform.android)
+        : (Platform.isLinux || Platform.isWindows || Platform.isMacOS);
+
     String tapPointName = isDesktop ? "Mouse" : "Touch";
     buttons.addAll([
       const Text("Controls: ",
@@ -105,6 +116,175 @@ class MenuOverllayState extends State<MenuOverllay> {
         "Back to Main",
         () => {
               setState(() {
+                menuContext = MenuContext.Root;
+              })
+            }));
+    return menuGroup(buttons);
+  }
+
+  Column mainOptions(BuildContext context) {
+    List<Widget> buttons = [
+      button(
+          "Rules",
+          () => {
+                setState(() {
+                  menuContext = MenuContext.Rules;
+                })
+              }),
+      button(
+          "Back to Main",
+          () => {
+                setState(() {
+                  menuContext = MenuContext.Root;
+                })
+              }),
+    ];
+    return menuGroup(buttons);
+  }
+
+  ListTile createCheckBoxItem(
+      {required String title,
+      required bool value,
+      required void Function(bool?)? onChanged}) {
+    Color color = Colors.amber;
+    Color getColor(Set<MaterialState> states) {
+      return color;
+    }
+
+    return ListTile(
+      title: Text(title,
+          style: TextStyle(
+            color: color,
+          )),
+      trailing: Checkbox(
+        value: value,
+        onChanged: onChanged,
+        fillColor: MaterialStateProperty.resolveWith(getColor),
+        checkColor: Colors.black,
+      ),
+    );
+  }
+
+  Column rulesSection(BuildContext context) {
+    List<Widget> buttons = [];
+    rulesKey ??= widget.game.getActiveView()!.currentRules;
+    List<PopupMenuItem<String>> menuItems = [];
+    for (String key in RulesProvider.keys()) {
+      menuItems.add(PopupMenuItem<String>(
+          value: key,
+          child: Text(key,
+              style: const TextStyle(
+                color: Colors.white,
+              ))));
+    }
+    Rules storedRules = RulesProvider.getRules(rulesKey!)!;
+    rules ??= Rules.from(storedRules);
+
+    buttons.add(Container(
+        margin: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(3.0),
+        decoration: const BoxDecoration(
+            color: Colors.green,
+            borderRadius: BorderRadius.all(Radius.circular(5.0))),
+        child: PopupMenuButton<String>(
+          color: Colors.green,
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Icon(
+              Icons.arrow_downward_outlined,
+              color: Colors.white,
+            ),
+            Text(
+              rulesKey!,
+              style: const TextStyle(color: Colors.white, fontSize: 20),
+            )
+          ]),
+          onSelected: (String key) {
+            setState(() {
+              rules = null;
+              rulesKey = key;
+            });
+          },
+          itemBuilder: (BuildContext context) => menuItems,
+        )));
+    if (!rules!.compareRules(storedRules)) {
+      buttons.add(const Text("MODIFIED",
+          style: TextStyle(
+            color: Colors.red,
+          )));
+    }
+    buttons.add(createCheckBoxItem(
+        title: "Shooting enabled",
+        value: rules!.shootingEnabled,
+        onChanged: (bool? value) {
+          setState(() {
+            rules!.shootingEnabled = value!;
+          });
+        }));
+    buttons.add(createCheckBoxItem(
+        title: "Append in gap",
+        value: rules!.appendInGap,
+        onChanged: (bool? value) {
+          setState(() {
+            rules!.appendInGap = value!;
+          });
+        }));
+    buttons.add(createCheckBoxItem(
+        title: "Can colide with self",
+        value: rules!.canColideWithSelf,
+        onChanged: (bool? value) {
+          setState(() {
+            rules!.canColideWithSelf = value!;
+          });
+        }));
+    buttons.add(createCheckBoxItem(
+      title: "Semi-autonome",
+      value: rules!.semiAutonome,
+      onChanged: (bool? value) {
+        setState(() {
+          rules!.semiAutonome = value!;
+        });
+      },
+    ));
+    if (storedRules.rulesModifiable && !rules!.compareRules(storedRules)) {
+      buttons.add(button("Save", () {
+        setState(() {
+          storedRules = rules!;
+        });
+      }));
+    }
+    if (!rules!.compareRules(storedRules)) {
+      buttons.add(button(
+          "Save as",
+          () => setState(() {
+                Future<String?> newName = showDialog(
+                  context: context,
+                  builder: (context) => StringDialog(
+                    key: const Key("SaveRulesDialog"),
+                    titleString: "Save rules as",
+                    valueValidator: (String value) {
+                      if (RulesProvider.isKeyAvailable(value)) {
+                        return null;
+                      }
+                      return "Name already used.";
+                    },
+                  ),
+                );
+                newName.then((value) {
+                  if (value != null && value.isNotEmpty) {
+                    setState(() {
+                      RulesProvider.addRules(value, rules!);
+                      rulesKey = value;
+                      rules = null;
+                    });
+                  }
+                });
+              })));
+    }
+    buttons.add(button(
+        "Back to Options",
+        () => {
+              setState(() {
+                rules = null;
                 menuContext = MenuContext.Root;
               })
             }));

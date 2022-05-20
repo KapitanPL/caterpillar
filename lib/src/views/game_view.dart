@@ -45,9 +45,7 @@ class GameView extends BaseView {
 
     game.addWall(points: points, close: true);
 
-    Rules rules = Rules();
-    rules.canColideWithSelf = false;
-    RulesProvider.rules = rules;
+    currentRules = "Game Rules";
   }
 
   @override

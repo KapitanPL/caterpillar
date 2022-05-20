@@ -64,9 +64,7 @@ class MainMenuView extends GameView {
 
     game.addWall(points: points, close: true);
 
-    Rules rules = Rules();
-    rules.canColideWithSelf = true;
-    RulesProvider.rules = rules;
+    currentRules = "Menu Rules";
   }
 
   FoodBase? findClosestFood(CaterpillarHead head) {
