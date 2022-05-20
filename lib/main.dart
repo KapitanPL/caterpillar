@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:control_pad/control_pad.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 import 'src/gameSettings/globals.dart';
 import 'src/gameSettings/ingame_settings.dart';
@@ -20,6 +23,8 @@ import 'src/menu_overlays/ingame_manu_overlay.dart';
 //speed
 
 void main() {
+  var path = Directory.current.path;
+  Hive.init(path);
   SizeProvider.setSize(20);
   runApp(MyApp());
 }
@@ -43,7 +48,7 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({required Key key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {

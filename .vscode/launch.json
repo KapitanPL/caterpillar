@@ -9,6 +9,7 @@
             "name": "desktop",
             "request": "launch",
             "type": "dart",
+            "deviceId": "linux",
             "args": [
                 "--no-sound-null-safety"
             ]

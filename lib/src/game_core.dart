@@ -140,6 +140,7 @@ class GameCore extends FlameGame with HasCollisionDetection {
   GameCore() {
     gameState = GameState(game: this);
     gameState.setMenu(true);
+    RulesProvider.initBasicRules();
   }
 
   @override
@@ -155,6 +156,10 @@ class GameCore extends FlameGame with HasCollisionDetection {
     _views[_activeView]?.activate();
     toggleJoypadCallback?.call(_activeView == BaseViewType.Game);
     toggleMainMenuCallback?.call(false);
+  }
+
+  BaseView? getActiveView() {
+    return _views[_activeView];
   }
 
   void onModeChanged() {

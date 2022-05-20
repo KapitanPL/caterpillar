@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 
@@ -10,11 +9,12 @@ import 'package:catterpillardream/src/gameSettings/color_maps.dart';
 import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
 import 'package:catterpillardream/src/gameSettings/globals.dart';
 import 'package:catterpillardream/src/pathFinding/trajectory.dart';
+import 'package:catterpillardream/src/game_core.dart';
 
 typedef IterateCallback = void Function(int index, dynamic arg);
 
 class Caterpillar {
-  final FlameGame _game;
+  final GameCore _game;
   late final int _caterpiallarId;
   List<CaterpillarBase> caterpillar = [];
   Vector2 _velocity = Vector2(1, -1);
@@ -199,7 +199,9 @@ class Caterpillar {
     if (nextIndex < caterpillar.length) {
       var nextPiece = (caterpillar[nextIndex] as CaterpillarBody);
 
-      if (nextPiece.hasGap && RulesProvider.rules!.appendInGap) {
+      if (nextPiece.hasGap &&
+          RulesProvider.getRules(_game.getActiveView()!.currentRules)!
+              .appendInGap) {
         CaterpillarBody newPiece = CaterpillarBody(
             position: thisPiece.position, type: food, id: _caterpiallarId);
         newPiece.time = thisPiece.time;
