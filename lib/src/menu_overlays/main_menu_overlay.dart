@@ -15,9 +15,17 @@ class MainMenuOverllay extends MenuOverllay {
 class _MainMenuOverllayState extends MenuOverllayState {
   _MainMenuOverllayState() : super();
 
+  @override
   Column mainMenu(BuildContext context) {
     List<Widget> buttons = [
-      button("NewGame", widget.game.startNewGame),
+      button("Play!", widget.game.startNewGame),
+      button(
+          "Select new game",
+          () => {
+                setState(() {
+                  menuContext = MenuContext.NewGameMenu;
+                })
+              }),
       button(
           "Options",
           () => {
@@ -38,24 +46,20 @@ class _MainMenuOverllayState extends MenuOverllayState {
   }
 
   @override
-  Widget build(BuildContext context) {
-    switch (menuContext) {
-      case MenuContext.Root:
-        {
-          return mainMenu(context);
-        }
-      case MenuContext.Options:
-        {
-          return mainOptions(context);
-        }
-      case MenuContext.Controls:
-        {
-          return controls(context);
-        }
-      case MenuContext.Rules:
-        {
-          return rulesSection(context);
-        }
-    }
+  Column newGameMenu(BuildContext context) {
+    List<Widget> buttons = [
+      button("Zen", () {}),
+      button("Duel", () {}),
+      button("Story", () {}),
+      button("Total zen", () {}),
+      button("Custom", () {}),
+      const SizedBox(height: 10),
+      button(
+          "Batk to Main",
+          (() => setState(() {
+                menuContext = MenuContext.Root;
+              }))),
+    ];
+    return menuGroup(buttons);
   }
 }

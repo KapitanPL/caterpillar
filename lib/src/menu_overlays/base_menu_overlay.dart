@@ -11,12 +11,7 @@ import 'package:catterpillardream/src/menu_overlays/widgets/button_selectors.dar
 
 typedef ButtonCallback = void Function();
 
-enum MenuContext {
-  Root,
-  Options,
-  Controls,
-  Rules,
-}
+enum MenuContext { Root, Options, Controls, Rules, NewGameMenu }
 
 class MenuOverllay extends StatefulWidget {
   final GameCore game;
@@ -60,11 +55,6 @@ class MenuOverllayState extends State<MenuOverllay> {
         ),
       ])
     ]);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return menuGroup([]);
   }
 
   Column controls(BuildContext context) {
@@ -163,6 +153,10 @@ class MenuOverllayState extends State<MenuOverllay> {
         checkColor: Colors.black,
       ),
     );
+  }
+
+  Column newGameMenu(BuildContext context) {
+    return Column();
   }
 
   Column rulesSection(BuildContext context) {
@@ -290,5 +284,35 @@ class MenuOverllayState extends State<MenuOverllay> {
               })
             }));
     return menuGroup(buttons);
+  }
+
+  Column mainMenu(BuildContext context) {
+    return Column();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    switch (menuContext) {
+      case MenuContext.Root:
+        {
+          return mainMenu(context);
+        }
+      case MenuContext.Options:
+        {
+          return mainOptions(context);
+        }
+      case MenuContext.Controls:
+        {
+          return controls(context);
+        }
+      case MenuContext.Rules:
+        {
+          return rulesSection(context);
+        }
+      case MenuContext.NewGameMenu:
+        {
+          return newGameMenu(context);
+        }
+    }
   }
 }

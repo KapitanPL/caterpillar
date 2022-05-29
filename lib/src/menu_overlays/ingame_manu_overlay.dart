@@ -1,6 +1,4 @@
-import 'dart:io';
-import 'dart:ui';
-import 'base_menu_overlay.dart';
+import 'package:catterpillardream/src/menu_overlays/base_menu_overlay.dart';
 
 import 'package:catterpillardream/src/game_core.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +14,7 @@ class InGameMenuOverllay extends MenuOverllay {
 class _InGameMenuOverllayState extends MenuOverllayState {
   _InGameMenuOverllayState() : super();
 
+  @override
   Column mainMenu(BuildContext context) {
     List<Widget> buttons = [
       button(
@@ -39,27 +38,5 @@ class _InGameMenuOverllayState extends MenuOverllayState {
       button("Quit to main menu", widget.game.endGameAndBackToMain),
     ];
     return menuGroup(buttons);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    switch (menuContext) {
-      case MenuContext.Root:
-        {
-          return mainMenu(context);
-        }
-      case MenuContext.Options:
-        {
-          return mainOptions(context);
-        }
-      case MenuContext.Controls:
-        {
-          return controls(context);
-        }
-      case MenuContext.Rules:
-        {
-          return rulesSection(context);
-        }
-    }
   }
 }

@@ -268,7 +268,8 @@ class GameCore extends FlameGame with HasCollisionDetection {
   }
 
   void mouseMoved(PointerEvent event) {
-    if (GameSettings.controls == Controls.tapPoint) {
+    if (_activeView == BaseViewType.Game &&
+        GameSettings.controls == Controls.tapPoint) {
       double degrees = CaterpillarPath.getStartEndAngle(
           _views[_activeView]!.getHeadCenterPosition(),
           Vector2(event.position.dx, event.position.dy));
@@ -314,6 +315,9 @@ class GameCore extends FlameGame with HasCollisionDetection {
   void remove(Component component) {
     if (component is PositionComponent) {
       positionComponentsCache.remove(component);
+      if (component is! PathComponentSegment && component is! FoodBase) {
+        print("removing really something");
+      }
     }
     if (component is FoodBase) {
       food.remove(component);

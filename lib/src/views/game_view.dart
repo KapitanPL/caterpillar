@@ -97,7 +97,11 @@ class GameView extends BaseView {
   @override
   void deactivate() {
     while (game.positionComponentsCache.isNotEmpty) {
-      game.positionComponentsCache.first.shouldRemove = true;
+      if (game.positionComponentsCache.first.parent == null) {
+        game.remove(game.positionComponentsCache.first);
+      } else {
+        game.positionComponentsCache.first.shouldRemove = true;
+      }
     }
   }
 
