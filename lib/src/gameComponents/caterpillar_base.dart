@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:catterpillardream/src/gameSettings/color_maps.dart';
 import 'package:catterpillardream/src/gameSettings/globals.dart';
 
-typedef EatCallback = void Function(int what);
+typedef EatCallback = void Function(FoodBase what);
 typedef CrashCallback = void Function();
 typedef CaterpillarCrash = void Function(CaterpillarBase other);
 typedef CaterpillarBodyCrash = void Function(
@@ -65,7 +65,9 @@ class CaterpillarHead extends CaterpillarBase {
   late caterpillarCrash caterpillarCrash;*/
   bool wallCollided = false;
   EatCallback? caterpillarEat;
+  FoodBase? foodInMouth;
   List<int> foodToProcess = [];
+
   CaterpillarHead({required Vector2 position, required int id})
       : super(position: position, caterpiallarId: id);
 
@@ -75,7 +77,7 @@ class CaterpillarHead extends CaterpillarBase {
     if (other is CaterpillarBase && caterpillarCrash != null) {
       caterpillarCrash!(other);
     } else if (other is FoodBase && caterpillarEat != null) {
-      caterpillarEat!(other.type);
+      caterpillarEat!(other);
       other.shouldRemove = true;
     } else if (other is WallBase) {
       wallCollided = true;
@@ -96,6 +98,10 @@ class CaterpillarHead extends CaterpillarBase {
       ..color = wallCollided ? Colors.green : Colors.red;
     canvas.drawCircle(_center, SizeProvider.getSize(), paint);
     canvas.drawCircle(_center, SizeProvider.getSize() - 2, bckg);
+    if (foodInMouth != null) {
+      Paint foodPaint = Paint()..color = colorMap[foodInMouth!.type]!;
+      canvas.drawCircle(_center, SizeProvider.getSize() / 2, foodPaint);
+    }
     super.render(canvas);
   }
 }

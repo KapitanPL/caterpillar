@@ -10,6 +10,7 @@ import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
 import 'package:catterpillardream/src/gameSettings/globals.dart';
 import 'package:catterpillardream/src/pathFinding/trajectory.dart';
 import 'package:catterpillardream/src/game_core.dart';
+import 'package:catterpillardream/src/gameComponents/food.dart';
 
 typedef IterateCallback = void Function(int index, dynamic arg);
 
@@ -58,9 +59,13 @@ class Caterpillar {
     _game.add(newPiece);
   }
 
-  void eat(int what) {
+  void eat(FoodBase what) {
     CaterpillarHead head = caterpillar[0] as CaterpillarHead;
-    head.foodToProcess.add(what);
+    if (head.foodInMouth != null) {
+      head.foodToProcess.add(head.foodInMouth!.type);
+      head.foodInMouth = null;
+    }
+    head.foodInMouth = what;
   }
 
   void initBodyRandomCount(int initLength, Set<int> initColors) {
