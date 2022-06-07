@@ -16,6 +16,7 @@ abstract class BaseView {
 
   void update(double t);
   void joypadChanged(double degrees, double distance);
+  void fire();
   void render(Canvas c);
 
   Vector2 getHeadCenterPosition();

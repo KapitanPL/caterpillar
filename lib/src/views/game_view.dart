@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:catterpillardream/src/gameComponents/caterpillar_base.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -100,7 +102,7 @@ class GameView extends BaseView {
       if (game.positionComponentsCache.first.parent == null) {
         game.remove(game.positionComponentsCache.first);
       } else {
-        game.positionComponentsCache.first.shouldRemove = true;
+        game.positionComponentsCache.first.removeFromParent();
       }
     }
   }
@@ -109,5 +111,23 @@ class GameView extends BaseView {
   Vector2 getHeadCenterPosition() {
     CaterpillarBase head = caterpillars[_playerId]!.caterpillar.first;
     return head.position + head.size / 2;
+  }
+
+  @override
+  void fire() {
+    CaterpillarHead head =
+        caterpillars[_playerId]!.caterpillar.first as CaterpillarHead;
+    if (head.foodInMouth != null) {
+      double direction = caterpillars[_playerId]!.getDirection();
+      FreeBodyPart freeBody = FreeBodyPart(
+          position: head.position +
+              Vector2(sin(direction), -cos(direction)) *
+                  SizeProvider.getSize() /
+                  2,
+          direction: direction,
+          type: head.foodInMouth!.type);
+      game.add(freeBody);
+      head.foodInMouth = null;
+    }
   }
 }

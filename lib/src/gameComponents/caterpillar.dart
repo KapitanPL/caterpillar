@@ -27,7 +27,7 @@ class Caterpillar {
 
   bool drawTrajectory = false;
   Caterpillar(this._caterpiallarId, this._game, Vector2 initPosition) {
-    var head = CaterpillarHead(id: _caterpiallarId, position: initPosition);
+    var head = CaterpillarHead(cat: this, position: initPosition);
     caterpillar.add(head);
     _game.add(head);
     head.caterpillarCrash = genericCrash;
@@ -37,6 +37,10 @@ class Caterpillar {
 
   void setVelocity(Vector2 velocity) {
     _velocity = velocity;
+  }
+
+  double getDirection() {
+    return _zeroAngle.angleTo(_velocity) * (_velocity.x.isNegative ? -1 : 1);
   }
 
   void iterateCaterpillar(IterateCallback function, dynamic arg) {
@@ -51,9 +55,32 @@ class Caterpillar {
 
   void genericCrash(CaterpillarBase other) {}
 
+  void checkFreeBodyInsert(FreeBodyPart other) {
+    CaterpillarBase? previousBase;
+    for (int index = 0; index < caterpillar.length; ++index) {
+      var cat = caterpillar[index];
+      if (cat.colisions.contains(other)) {
+        if (previousBase != null) {
+          if (!checkForChainReactionWithFood(index, other.type)) {
+            var newPiece = CaterpillarBody(
+                position: cat.position, type: other.type, cat: this);
+            newPiece.time = cat.time;
+            caterpillar.insert(index, newPiece);
+            _game.add(newPiece);
+          }
+          cat.colisions.remove(other);
+          previousBase.colisions.remove(other);
+          other.removeFromParent();
+        } else {
+          previousBase = cat;
+        }
+      }
+    }
+  }
+
   void appendNewPiece(int what) {
     var newPiece = CaterpillarBody(
-        position: caterpillar.last.position, type: what, id: _caterpiallarId);
+        position: caterpillar.last.position, type: what, cat: this);
     newPiece.time = caterpillar.last.time;
     caterpillar.add(newPiece);
     _game.add(newPiece);
@@ -83,7 +110,7 @@ class Caterpillar {
         body.add(CaterpillarBody(
             position: headPosition,
             type: initColors.elementAt(next),
-            id: _caterpiallarId));
+            cat: this));
         isColorUsed[next] = true;
       }
 
@@ -103,7 +130,7 @@ class Caterpillar {
         body.add(CaterpillarBody(
             position: headPosition,
             type: initColors.elementAt(i % colorMap.length),
-            id: _caterpiallarId));
+            cat: this));
       }
     }
 
@@ -134,8 +161,7 @@ class Caterpillar {
   void update(double dt) {
     _velocity += _acceleration * dt;
     _velocity = _velocity.normalized();
-    double direction =
-        _zeroAngle.angleTo(_velocity) * (_velocity.x.isNegative ? -1 : 1);
+    double direction = getDirection();
     CaterpillarHead head = caterpillar[0] as CaterpillarHead;
     head.time += _velocity.length > 0 ? dt : 0;
     if (trajectory.isTimeValid(head.time)) {
@@ -208,7 +234,7 @@ class Caterpillar {
           RulesProvider.getRules(_game.getActiveView()!.currentRules)!
               .appendInGap) {
         CaterpillarBody newPiece = CaterpillarBody(
-            position: thisPiece.position, type: food, id: _caterpiallarId);
+            position: thisPiece.position, type: food, cat: this);
         newPiece.time = thisPiece.time;
         caterpillar.insert(index, newPiece);
         _game.add(newPiece);
@@ -228,9 +254,9 @@ class Caterpillar {
     }
   }
 
-  void checkForChainReactionWithFood(int index, int foodType) {
+  bool checkForChainReactionWithFood(int index, int foodType) {
     if ((caterpillar[index] as CaterpillarBody).type != foodType) {
-      return;
+      return false;
     }
     int minIndex = index;
     int maxIndex = index;
@@ -246,7 +272,9 @@ class Caterpillar {
     }
     if (maxIndex - minIndex + 1 >= 3) {
       doChainReaction(minIndex, maxIndex);
+      return true;
     }
+    return false;
   }
 
   void checkForChainReactionOnTap(int index) {
@@ -271,7 +299,7 @@ class Caterpillar {
 
   void doChainReaction(int minIndex, int maxIndex) {
     for (int i = minIndex; i <= maxIndex; ++i) {
-      caterpillar[i].shouldRemove = true;
+      caterpillar[i].removeFromParent();
     }
     if (maxIndex + 1 < caterpillar.length) {
       (caterpillar[maxIndex + 1] as CaterpillarBody).hasGap = true;

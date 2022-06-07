@@ -276,6 +276,15 @@ class GameCore extends FlameGame with HasCollisionDetection {
     }
   }
 
+  void mouseDown(PointerEvent event) {
+    if (_activeView == BaseViewType.Game &&
+        GameSettings.controls == Controls.tapPoint) {
+      if (event is PointerDownEvent) {
+        _views[_activeView]?.fire();
+      }
+    }
+  }
+
   void pauseGame(bool pause) {
     gameState.setPaused(pause);
     if (pause) {

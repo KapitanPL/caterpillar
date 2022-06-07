@@ -25,20 +25,25 @@ class SizeProvider {
 }
 
 class SpeedProvider {
-  static int _gapSpeedFactor = 3;
-  static int _foodSpeedFactor = 3;
-  static int _headSpeedFactor = 100;
+  static double _gapSpeedFactor = 3;
+  static double _foodSpeedFactor = 3;
+  static double _headSpeedFactor = 100;
+  static double _freeBodySpeed = 500;
 
-  static int headSpeed() {
+  static double headSpeed() {
     return _headSpeedFactor;
   }
 
-  static int foodSpeed() {
+  static double foodSpeed() {
     return _foodSpeedFactor * _headSpeedFactor;
   }
 
-  static int gapSpeedFactor() {
+  static double gapSpeedFactor() {
     return _gapSpeedFactor;
+  }
+
+  static double freeBodySpeed() {
+    return _freeBodySpeed;
   }
 }
 
