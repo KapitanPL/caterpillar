@@ -1,7 +1,9 @@
 import 'dart:ui';
+import 'dart:math';
 
 import 'package:catterpillardream/src/gameComponents/food.dart';
 import 'package:catterpillardream/src/gameComponents/walls.dart';
+import 'package:catterpillardream/src/gameComponents/caterpillar.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
@@ -10,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:catterpillardream/src/gameSettings/color_maps.dart';
 import 'package:catterpillardream/src/gameSettings/globals.dart';
 
-typedef EatCallback = void Function(int what);
+typedef EatCallback = void Function(FoodBase what);
 typedef CrashCallback = void Function();
 typedef CaterpillarCrash = void Function(CaterpillarBase other);
 typedef CaterpillarBodyCrash = void Function(
@@ -43,12 +45,13 @@ class FoodInCaterpillar {
 
 class CaterpillarBase extends PositionComponent
     with CollisionCallbacks, HasGameRef {
-  int caterpiallarId;
+  Caterpillar? caterpiallar;
   double time = 0;
   FoodInCaterpillar food = FoodInCaterpillar();
+  List<CaterpillarBase> colisions = [];
   CaterpillarCrash? caterpillarCrash;
   final Offset _center = SizeProvider.getDoubleVector2Size().toOffset() / 2;
-  CaterpillarBase({required Vector2 position, required this.caterpiallarId})
+  CaterpillarBase({required Vector2 position, required this.caterpiallar})
       : super(position: position, size: SizeProvider.getDoubleVector2Size()) {
     add(CircleHitbox());
   }
@@ -65,9 +68,11 @@ class CaterpillarHead extends CaterpillarBase {
   late caterpillarCrash caterpillarCrash;*/
   bool wallCollided = false;
   EatCallback? caterpillarEat;
+  FoodBase? foodInMouth;
   List<int> foodToProcess = [];
-  CaterpillarHead({required Vector2 position, required int id})
-      : super(position: position, caterpiallarId: id);
+
+  CaterpillarHead({required Vector2 position, required Caterpillar? cat})
+      : super(position: position, caterpiallar: cat);
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
@@ -75,8 +80,8 @@ class CaterpillarHead extends CaterpillarBase {
     if (other is CaterpillarBase && caterpillarCrash != null) {
       caterpillarCrash!(other);
     } else if (other is FoodBase && caterpillarEat != null) {
-      caterpillarEat!(other.type);
-      other.shouldRemove = true;
+      caterpillarEat!(other);
+      other.removeFromParent();
     } else if (other is WallBase) {
       wallCollided = true;
     }
@@ -85,6 +90,7 @@ class CaterpillarHead extends CaterpillarBase {
   @override
   void onCollisionEnd(PositionComponent other) {
     wallCollided = false;
+    super.onCollisionEnd(other);
   }
 
   @override
@@ -96,6 +102,11 @@ class CaterpillarHead extends CaterpillarBase {
       ..color = wallCollided ? Colors.green : Colors.red;
     canvas.drawCircle(_center, SizeProvider.getSize(), paint);
     canvas.drawCircle(_center, SizeProvider.getSize() - 2, bckg);
+    if (foodInMouth != null) {
+      canvas.drawCircle(_center, SizeProvider.getSize() / 2, paint);
+      Paint foodPaint = Paint()..color = colorMap[foodInMouth!.type]!;
+      canvas.drawCircle(_center, SizeProvider.getSize() / 2 - 2, foodPaint);
+    }
     super.render(canvas);
   }
 }
@@ -108,8 +119,8 @@ class CaterpillarBody extends CaterpillarBase {
   bool isFast = false;
   // late CaterpillarBodyCrash CaterpillarBodyCrash;
   CaterpillarBody(
-      {required Vector2 position, required this.type, required int id})
-      : super(position: position, caterpiallarId: id);
+      {required Vector2 position, required this.type, required Caterpillar cat})
+      : super(position: position, caterpiallar: cat);
 
   @override
   void render(Canvas canvas) {
@@ -158,5 +169,49 @@ class CaterpillarBody extends CaterpillarBase {
   @override
   void onCollisionEnd(PositionComponent other) {
     isColided = false;
+  }
+}
+
+class FreeBodyPart extends CaterpillarBase {
+  double direction;
+  int type;
+  FreeBodyPart(
+      {required Vector2 position, required this.direction, required this.type})
+      : super(caterpiallar: null, position: position);
+
+  @override
+  void update(double dt) {
+    position += Vector2(sin(direction), -cos(direction)) *
+        SpeedProvider.freeBodySpeed() *
+        dt;
+    super.update(dt);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    Paint paint = Paint()..color = colorMap[type]!;
+    canvas.drawCircle(_center, SizeProvider.getSize(), paint);
+
+    //debugMode = true;
+    super.render(canvas);
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (other is CaterpillarBase) {
+      CaterpillarBase theOther = other;
+      theOther.colisions.add(this);
+      theOther.caterpiallar?.checkFreeBodyInsert(this);
+    }
+  }
+
+  @override
+  void onCollisionEnd(PositionComponent other) {
+    super.onCollisionEnd(other);
+    if (other is CaterpillarBase) {
+      CaterpillarBase theOther = other;
+      theOther.colisions.remove(this);
+    }
   }
 }

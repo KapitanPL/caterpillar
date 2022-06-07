@@ -109,8 +109,11 @@ class MainMenuView extends GameView {
       if (game.positionComponentsCache.first.parent == null) {
         game.remove(game.positionComponentsCache.first);
       } else {
-        game.positionComponentsCache.first.shouldRemove = true;
+        game.positionComponentsCache.first.removeFromParent();
       }
     }
   }
+
+  @override
+  void fire() {}
 }

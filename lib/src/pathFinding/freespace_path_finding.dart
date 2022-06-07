@@ -68,7 +68,7 @@ class CaterpillarPath {
 
   void clear() {
     for (var path in _pathList) {
-      path.shouldRemove = true;
+      path.removeFromParent();
     }
     points.clear();
     _pathList.clear();
@@ -91,7 +91,7 @@ class CaterpillarPath {
     points.insert(index, point);
     if (index > 0) {
       // except for first
-      _pathList[index - 1].shouldRemove = true;
+      _pathList[index - 1].removeFromParent();
       _pathList.removeAt(index - 1);
       var previousPathElement = getPathPositionComponent(
           points[index - 1], points[index], _objectSize);

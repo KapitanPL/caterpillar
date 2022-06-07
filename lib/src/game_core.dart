@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
 import 'package:catterpillardream/src/views/base_view.dart';
@@ -8,7 +7,6 @@ import 'package:catterpillardream/src/views/main_menu_view.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -275,6 +273,15 @@ class GameCore extends FlameGame with HasCollisionDetection {
           Vector2(event.position.dx, event.position.dy));
       degrees = 360 * degrees / 2 / pi;
       _views[_activeView]?.joypadChanged(degrees, 1);
+    }
+  }
+
+  void mouseDown(PointerEvent event) {
+    if (_activeView == BaseViewType.Game &&
+        GameSettings.controls == Controls.tapPoint) {
+      if (event is PointerDownEvent) {
+        _views[_activeView]?.fire();
+      }
     }
   }
 

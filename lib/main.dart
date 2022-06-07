@@ -124,6 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(body: Stack(children: getWidgets())),
         onPointerMove: (event) => _game.mouseMoved(event),
         onPointerHover: (event) => _game.mouseMoved(event),
+        onPointerDown: (event) => _game.mouseDown(event),
       ),
       onKey: (event) {
         _game.processKey(event);
