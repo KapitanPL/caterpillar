@@ -98,11 +98,12 @@ class GameView extends BaseView {
 
   @override
   void deactivate() {
-    while (game.positionComponentsCache.isNotEmpty) {
-      if (game.positionComponentsCache.first.parent == null) {
-        game.remove(game.positionComponentsCache.first);
+    var activeComponents = game.colisionSystem.getAllComponents();
+    while (activeComponents.isNotEmpty) {
+      if (activeComponents.first.parent == null) {
+        game.remove(activeComponents.first);
       } else {
-        game.positionComponentsCache.first.removeFromParent();
+        activeComponents.first.removeFromParent();
       }
     }
   }

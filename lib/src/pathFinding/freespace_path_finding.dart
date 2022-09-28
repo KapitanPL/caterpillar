@@ -1,13 +1,13 @@
 import 'dart:math';
 
 import 'package:catterpillardream/src/gameComponents/walls.dart';
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/geometry.dart';
 import 'package:flutter/material.dart';
 
 import 'package:catterpillardream/src/gameSettings/globals.dart';
 import 'package:catterpillardream/src/game_core.dart';
+import '../utils/colision_system.dart';
 
 class IntersectionInfo {
   int leftIndex;
@@ -16,9 +16,9 @@ class IntersectionInfo {
   IntersectionInfo(this.leftIndex, this.rightIndex, this.intersectionPoint);
 }
 
-class PositionComponentInfo {
+class ShapeComponentInfo {
   int? segmentIndex;
-  PositionComponent? positionComponent;
+  ShapeComponent? positionComponent;
 }
 
 class PathComponentSegment extends RectangleComponent {
@@ -104,25 +104,26 @@ class CaterpillarPath {
     _pathList.insert(index, newPathElement);
   }
 
-  PositionComponentInfo _getFirstCollidingPositionComponentForPathPoints(
-      List<PositionComponent> positionComponentsToIgnore,
+  ShapeComponentInfo _getFirstCollidingPositionComponentForPathPoints(
+      List<ShapeComponent> componentsToIgnore,
       List<Vector2> pathPoints,
       double objectSize) {
-    PositionComponentInfo ret = PositionComponentInfo();
-    List<PositionComponent> colisions = [];
+    ShapeComponentInfo ret = ShapeComponentInfo();
+    List<ShapeComponent> colisions = [];
     int segmentCounter = 0;
     for (var i = 0; i < pathPoints.length - 1; ++i) {
       var pathSegment = getPathPositionComponent(
           pathPoints[i], pathPoints[i + 1], objectSize);
-      for (var gameComponent in _game.positionComponentsCache) {
-        if (gameComponent is PathComponentSegment) {
-          continue;
-        }
-        if (positionComponentsToIgnore.contains(gameComponent)) {
-          continue;
-        }
-        if (pathSegment.collidesWithOther(gameComponent)) {
-          colisions.add(gameComponent);
+      var possibleCollisions =
+          _game.colisionSystem.possibleCollisionsOf(pathSegment);
+      possibleCollisions
+          .removeWhere((element) => element is PathComponentSegment);
+      for (var componentToIgnore in componentsToIgnore) {
+        possibleCollisions.remove(componentToIgnore);
+      }
+      for (var possibleColision in possibleCollisions) {
+        if (possibleColision.collidesWithOther(pathSegment)) {
+          colisions.add(possibleColision);
         }
       }
       if (colisions.isNotEmpty) {
@@ -142,21 +143,22 @@ class CaterpillarPath {
     return ret;
   }
 
-  PositionComponentInfo _getFirstPositionComponent(
-      List<PositionComponent> positionComponentsToIgnore) {
-    PositionComponentInfo ret = PositionComponentInfo();
-    List<PositionComponent> colisions = [];
+  ShapeComponentInfo _getFirstPositionComponent(
+      List<ShapeComponent> componentsToIgnore) {
+    ShapeComponentInfo ret = ShapeComponentInfo();
+    List<ShapeComponent> colisions = [];
     int segmentCounter = 0;
     for (var pathSegment in _pathList) {
-      for (var gameObject in _game.positionComponentsCache) {
-        if (gameObject is PathComponentSegment) {
-          continue;
-        }
-        if (positionComponentsToIgnore.contains(gameObject)) {
-          continue;
-        }
-        if (pathSegment.collidesWithOther(gameObject)) {
-          colisions.add(gameObject);
+      var possibleCollisions =
+          _game.colisionSystem.possibleCollisionsOf(pathSegment);
+      possibleCollisions
+          .removeWhere((element) => element is PathComponentSegment);
+      for (var componentToIgnore in componentsToIgnore) {
+        possibleCollisions.remove(componentToIgnore);
+      }
+      for (var possibleColision in possibleCollisions) {
+        if (possibleColision.collidesWithOther(pathSegment)) {
+          colisions.add(possibleColision);
         }
       }
       if (colisions.isNotEmpty) {
@@ -176,9 +178,9 @@ class CaterpillarPath {
     return ret;
   }
 
-  void resolvePath(List<PositionComponent> PositionComponentsToIgnore) {
-    PositionComponentInfo obstacleInfo =
-        _getFirstPositionComponent(PositionComponentsToIgnore);
+  void resolvePath(List<ShapeComponent> componentsToIgnore) {
+    ShapeComponentInfo obstacleInfo =
+        _getFirstPositionComponent(componentsToIgnore);
     if (obstacleInfo.positionComponent != null) {
       var pointsAround = _getPointsAroundComponent(
           obstacleInfo.positionComponent!,

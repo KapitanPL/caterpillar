@@ -1,17 +1,13 @@
 import 'dart:math';
 
 import 'package:catterpillardream/src/gameComponents/caterpillar_base.dart';
-import 'package:catterpillardream/src/gameSettings/globals.dart';
-import 'package:flame/collisions.dart';
+import 'package:catterpillardream/src/utils/colision_system.dart';
 import 'package:flame/components.dart';
-import 'package:flame/game.dart';
-import 'package:flame/input.dart';
 
 import 'package:catterpillardream/src//views/game_view.dart';
 import 'package:catterpillardream/src/gameComponents/caterpillar.dart';
 import 'package:catterpillardream/src/game_core.dart';
 import 'package:catterpillardream/src/gameComponents/food.dart';
-import 'package:catterpillardream/src/gameSettings/rules.dart';
 
 import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
 
@@ -49,20 +45,20 @@ class MainMenuView extends GameView {
     cat4.path = CaterpillarPath(cat4.caterpillar[0].size.x, _game);
     caterpillars[cat4.id()] = cat4;*/
 
-    for (var i = 0; i < 10; ++i) {
-      game.addFood(colors: _colors);
-    }
-
     double wallThickness = 10;
+    double cte = 30;
     List<Vector2> points = [
-      Vector2(wallThickness, wallThickness),
-      Vector2(game.screenSize.x - wallThickness, wallThickness),
-      Vector2(
-          game.screenSize.x - wallThickness, game.screenSize.y - wallThickness),
-      Vector2(wallThickness, game.screenSize.y - wallThickness),
+      Vector2(wallThickness + cte, wallThickness + cte),
+      Vector2(game.screenSize.x - cte, wallThickness + cte),
+      Vector2(game.screenSize.x - cte, game.screenSize.y - cte),
+      Vector2(wallThickness + cte, game.screenSize.y - cte),
     ];
 
     game.addWall(points: points, close: true);
+
+    for (var i = 0; i < 10; ++i) {
+      game.addFood(colors: _colors);
+    }
 
     currentRules = "Menu Rules";
   }
@@ -70,11 +66,12 @@ class MainMenuView extends GameView {
   FoodBase? findClosestFood(CaterpillarHead head) {
     double minDistance = double.maxFinite;
     FoodBase? closestFood;
-    for (FoodBase food in game.food) {
+    for (ShapeComponent food
+        in game.colisionSystem.getAllComponents(categories: [categoryFood])) {
       double distance = (food.distance(head));
       if (distance < minDistance) {
         minDistance = distance;
-        closestFood = food;
+        closestFood = food as FoodBase;
       }
     }
     return closestFood;
@@ -105,11 +102,12 @@ class MainMenuView extends GameView {
 
   @override
   void deactivate() {
-    while (game.positionComponentsCache.isNotEmpty) {
-      if (game.positionComponentsCache.first.parent == null) {
-        game.remove(game.positionComponentsCache.first);
+    var activeComponents = game.colisionSystem.getAllComponents();
+    while (activeComponents.isNotEmpty) {
+      if (activeComponents.first.parent == null) {
+        game.remove(activeComponents.first);
       } else {
-        game.positionComponentsCache.first.removeFromParent();
+        activeComponents.first.removeFromParent();
       }
     }
   }

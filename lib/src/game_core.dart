@@ -1,10 +1,10 @@
 import 'dart:math';
 
+import 'package:catterpillardream/src/gameComponents/caterpillar_base.dart';
 import 'package:catterpillardream/src/pathFinding/freespace_path_finding.dart';
 import 'package:catterpillardream/src/views/base_view.dart';
 import 'package:catterpillardream/src/views/game_view.dart';
 import 'package:catterpillardream/src/views/main_menu_view.dart';
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -17,68 +17,11 @@ import 'gameComponents/walls.dart';
 
 import 'package:catterpillardream/src/gameSettings/globals.dart';
 import 'package:catterpillardream/src/gameSettings/ingame_settings.dart';
+import 'utils/colision_system.dart';
 
 typedef ToggleVisible = void Function(bool visible);
 typedef ToggleMenu = void Function({bool inGameMenu});
 typedef EnumChanged<T> = void Function(T value);
-
-extension CollisionResolver on PositionComponent {
-  List<Hitbox> getHitboxes() {
-    List<Hitbox> finallist = [];
-    propagateToChildren((c) {
-      if (c is Hitbox) {
-        finallist.add(c);
-      }
-      return true;
-    });
-    return finallist;
-  }
-
-  bool collides(Hitbox hitbox) {
-    bool collision = false;
-    for (var hb in getHitboxes()) {
-      if (hb.intersections(hitbox).isNotEmpty) {
-        collision = true;
-        if (collision) {
-          break;
-        }
-      }
-    }
-    return collision;
-  }
-
-  bool collidesWithOther(PositionComponent other) {
-    bool collision = false;
-    for (Hitbox hb in other.getHitboxes()) {
-      if (collides(hb)) {
-        collision = true;
-        break;
-      }
-    }
-
-    return collision;
-  }
-
-  bool collidesWithGame(HasCollisionDetection game) {
-    bool collision = false;
-    for (var i = 0; i < game.collisionDetection.items.length; ++i) {
-      bool possiblyCollides = false;
-      for (var hb in getHitboxes()) {
-        possiblyCollides =
-            game.collisionDetection.items[i].possiblyIntersects(hb);
-        if (possiblyCollides) {
-          break;
-        }
-      }
-      collision =
-          possiblyCollides && collides(game.collisionDetection.items[i]);
-      if (collision) {
-        break;
-      }
-    }
-    return collision;
-  }
-}
 
 class GameState {
   // variables
@@ -121,7 +64,7 @@ class GameState {
   }
 }
 
-class GameCore extends FlameGame with HasCollisionDetection {
+class GameCore extends FlameGame {
   late Vector2 screenSize;
   final Map<BaseViewType, BaseView> _views = {};
   late BaseViewType _activeView;
@@ -129,9 +72,8 @@ class GameCore extends FlameGame with HasCollisionDetection {
   final Random _random = Random();
   ToggleVisible? toggleJoypadCallback;
   ToggleVisible? toggleMainMenuCallback;
-
-  final List<PositionComponent> positionComponentsCache = [];
-  final List<FoodBase> food = [];
+  final ColisionSystem colisionSystem = ColisionSystem();
+  bool renderGrid = true;
 
   EnumChanged<JoypadPosition>? joypadPositionChanged;
 
@@ -139,6 +81,9 @@ class GameCore extends FlameGame with HasCollisionDetection {
     gameState = GameState(game: this);
     gameState.setMenu(true);
     RulesProvider.initBasicRules();
+    colisionSystem.initCathegory(categoryFood);
+    colisionSystem.initCathegory(categoryWall);
+    colisionSystem.initCathegory(categoryBody);
   }
 
   @override
@@ -210,28 +155,33 @@ class GameCore extends FlameGame with HasCollisionDetection {
     if (directionReal.x < 0) {
       angle = 2 * pi - angle;
     }
+    // Paint paint = Paint()..color = Colors.red.withOpacity(0.3);
     WallBase wall = WallBase(
-        size: Vector2(thickness, difference.length + thickness),
-        position: Vector2(start.x - thickness / 2, start.y - thickness / 2),
-        angle: angle);
+      size: Vector2(thickness, difference.length + thickness),
+      position: Vector2(start.x - thickness / 2, start.y - thickness / 2),
+      angle: angle,
+      //paint: paint
+    );
     add(wall);
   }
 
   void addFood({required Set<int> colors, Vector2? position}) {
+    Vector2? newPosition = colisionSystem.getRandomFreeSpace(
+        screenSize, SizeProvider.getDoubleVector2Size(), currentTime(),
+        baseSize: SizeProvider.getVector2Size());
+    if (newPosition == null) {
+      print("failed to add new food, creating random position");
+      newPosition = Vector2(_random.nextDouble() * screenSize.x,
+          _random.nextDouble() * screenSize.y);
+    } else {
+      print("new food position $newPosition");
+      newPosition += SizeProvider.getVector2Size();
+    }
     FoodBase newFood = FoodBase(
-        position: position ??
-            Vector2(_random.nextDouble() * screenSize.x,
-                _random.nextDouble() * screenSize.y),
+        position: position ?? newPosition,
         type: colors.elementAt(_random.nextInt(colors.length)),
         eaten: () => addFood(colors: colors));
 
-    while (newFood.collidesWithGame(this) && position == null) {
-      newFood = FoodBase(
-          position: Vector2(_random.nextDouble() * screenSize.x,
-              _random.nextDouble() * screenSize.y),
-          type: colors.elementAt(_random.nextInt(colors.length - 1)),
-          eaten: () => addFood(colors: colors));
-    }
     add(newFood);
   }
 
@@ -245,6 +195,9 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   @override
   void render(Canvas canvas) {
+    if (renderGrid) {
+      colisionSystem.renderGrid(canvas);
+    }
     _views[_activeView]?.render(canvas);
     super.render(canvas);
   }
@@ -296,11 +249,18 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   @override
   Future<void>? add(Component component) {
-    if (component is PositionComponent) {
-      positionComponentsCache.add(component);
-    }
-    if (component is FoodBase) {
-      food.add(component);
+    if (component is ShapeComponent) {
+      List<String> categories = [];
+      if (component is FoodBase) {
+        categories.add(categoryFood);
+      }
+      if (component is WallBase) {
+        categories.add(categoryWall);
+      }
+      if (component is CaterpillarBase) {
+        categories.add(categoryBody);
+      }
+      colisionSystem.addShapeComponent(component, categories: categories);
     }
     return super.add(component);
   }
@@ -308,11 +268,12 @@ class GameCore extends FlameGame with HasCollisionDetection {
   @override
   Future<void> addAll(Iterable<Component> components) {
     for (Component component in components) {
-      if (component is PositionComponent) {
-        positionComponentsCache.add(component);
-      }
-      if (component is FoodBase) {
-        food.add(component);
+      if (component is ShapeComponent) {
+        List<String> categories = [];
+        if (component is FoodBase) {
+          categories.add(categoryFood);
+        }
+        colisionSystem.addShapeComponent(component, categories: categories);
       }
     }
     return super.addAll(components);
@@ -320,14 +281,8 @@ class GameCore extends FlameGame with HasCollisionDetection {
 
   @override
   void remove(Component component) {
-    if (component is PositionComponent) {
-      positionComponentsCache.remove(component);
-      if (component is! PathComponentSegment && component is! FoodBase) {
-        print("removing really something");
-      }
-    }
-    if (component is FoodBase) {
-      food.remove(component);
+    if (component is ShapeComponent) {
+      colisionSystem.removeShapeComponent(component);
     }
     super.remove(component);
   }

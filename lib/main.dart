@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:control_pad/control_pad.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -154,10 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ? MainAxisAlignment.end
               : MainAxisAlignment.start,
           children: [
-            JoystickView(
-              size: _size,
-              onDirectionChanged: joypadChanged,
-            ),
+            // TODO add joystick
           ])
     ]);
   }

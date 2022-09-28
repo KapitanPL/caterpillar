@@ -1,9 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/geometry.dart';
 
 import 'caterpillar_base.dart';
 import 'package:catterpillardream/src/gameSettings/color_maps.dart';
@@ -11,17 +8,16 @@ import 'package:catterpillardream/src/gameSettings/globals.dart';
 
 typedef FoodEatenCallback = void Function();
 
-class FoodBase extends PositionComponent with CollisionCallbacks, HasGameRef {
+class FoodBase extends CircleComponent {
   double _time = 0;
   int type = 0;
   FoodEatenCallback eaten;
   static var rand = Random();
   bool _wasEaten = false;
   FoodBase({required Vector2 position, required this.type, required this.eaten})
-      : super(position: position, size: SizeProvider.getDoubleVector2Size()) {
+      : super(position: position, radius: SizeProvider.getSize()) {
     anchor = Anchor.center;
 
-    add(CircleHitbox());
     _time = rand.nextDouble();
   }
 
@@ -32,7 +28,7 @@ class FoodBase extends PositionComponent with CollisionCallbacks, HasGameRef {
       ..strokeCap = StrokeCap.round
       ..color = colorMap[type]!;
 
-    double sizeFactor = sin(3 * _time) * sin(3 * _time) / 2 + 0.5;
+    double sizeFactor = /*sin(3 * _time) * sin(3 * _time) / 2 + 0.5*/ 1;
     List<Offset> pathPoints = [
       (const Offset(1, 0) * SizeProvider.getSize() * sizeFactor +
           SizeProvider.getVector2Size().toOffset()),
@@ -47,16 +43,16 @@ class FoodBase extends PositionComponent with CollisionCallbacks, HasGameRef {
     Path path = Path();
     path.addPolygon(pathPoints, true);
     canvas.drawPath(path, paint);
-    super.render(canvas);
+    //super.render(canvas);
   }
 
-  @override
+  /*@override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (other is CaterpillarHead) {
       _wasEaten = true;
     }
-  }
+  }*/
 
   @override
   void update(double dt) {

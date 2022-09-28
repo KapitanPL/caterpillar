@@ -43,8 +43,7 @@ class FoodInCaterpillar {
   }
 }
 
-class CaterpillarBase extends PositionComponent
-    with CollisionCallbacks, HasGameRef {
+class CaterpillarBase extends CircleComponent {
   Caterpillar? caterpiallar;
   double time = 0;
   FoodInCaterpillar food = FoodInCaterpillar();
@@ -52,7 +51,7 @@ class CaterpillarBase extends PositionComponent
   CaterpillarCrash? caterpillarCrash;
   final Offset _center = SizeProvider.getDoubleVector2Size().toOffset() / 2;
   CaterpillarBase({required Vector2 position, required this.caterpiallar})
-      : super(position: position, size: SizeProvider.getDoubleVector2Size()) {
+      : super(position: position, radius: SizeProvider.getSize()) {
     add(CircleHitbox());
   }
 
@@ -74,7 +73,7 @@ class CaterpillarHead extends CaterpillarBase {
   CaterpillarHead({required Vector2 position, required Caterpillar? cat})
       : super(position: position, caterpiallar: cat);
 
-  @override
+  /*@override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (other is CaterpillarBase && caterpillarCrash != null) {
@@ -91,7 +90,7 @@ class CaterpillarHead extends CaterpillarBase {
   void onCollisionEnd(PositionComponent other) {
     wallCollided = false;
     super.onCollisionEnd(other);
-  }
+  }*/
 
   @override
   void render(Canvas canvas) {
@@ -107,7 +106,7 @@ class CaterpillarHead extends CaterpillarBase {
       Paint foodPaint = Paint()..color = colorMap[foodInMouth!.type]!;
       canvas.drawCircle(_center, SizeProvider.getSize() / 2 - 2, foodPaint);
     }
-    super.render(canvas);
+    //super.render(canvas);
   }
 }
 
@@ -155,10 +154,10 @@ class CaterpillarBody extends CaterpillarBase {
       }
     }
     //debugMode = true;
-    super.render(canvas);
+    //super.render(canvas);
   }
 
-  @override
+  /*@override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     if (other is CaterpillarHead && canColideWithHead) {
       isColided = true;
@@ -169,7 +168,7 @@ class CaterpillarBody extends CaterpillarBase {
   @override
   void onCollisionEnd(PositionComponent other) {
     isColided = false;
-  }
+  }*/
 }
 
 class FreeBodyPart extends CaterpillarBase {
@@ -193,10 +192,10 @@ class FreeBodyPart extends CaterpillarBase {
     canvas.drawCircle(_center, SizeProvider.getSize(), paint);
 
     //debugMode = true;
-    super.render(canvas);
+    //super.render(canvas);
   }
 
-  @override
+  /*@override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
     if (other is CaterpillarBase) {
@@ -213,5 +212,5 @@ class FreeBodyPart extends CaterpillarBase {
       CaterpillarBase theOther = other;
       theOther.colisions.remove(this);
     }
-  }
+  }*/
 }
